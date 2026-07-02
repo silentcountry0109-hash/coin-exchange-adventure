@@ -21,7 +21,12 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+html, body {
+  height: 100%; overflow: hidden; overscroll-behavior: none;
+  /* iOS 忽略 user-scalable=no，靠 touch-action + js/zoomguard.js 擋雙擊/捏合縮放 */
+  touch-action: manipulation;
+}
+.planet { touch-action: manipulation; }
 
 body {
   font-family: var(--font-round);

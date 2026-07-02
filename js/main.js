@@ -1550,12 +1550,7 @@
       else { playScreenChars(currentScreen); pumpTimers(); sfx.unlock(); }
     });
 
-    // iOS Safari 會忽略 user-scalable=no：手動擋掉雙指捏合，
-    // 免得小朋友把畫面捏到放大卡住（頁面本身不捲動，安全）
-    document.addEventListener('gesturestart', (e) => e.preventDefault());
-    document.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 1) e.preventDefault();
-    }, { passive: false });
+    // 雙擊/捏合縮放的防護統一在 js/zoomguard.js（兩頁共用）
 
     // 前景時以 rAF 保險幫浦（幾乎零成本），計時器被節流也不卡動畫
     (function rafPump() {

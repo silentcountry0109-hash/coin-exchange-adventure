@@ -42,6 +42,13 @@ html, body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  /* iOS 忽略 user-scalable=no，靠 touch-action + js/zoomguard.js 擋雙擊/捏合縮放 */
+  touch-action: manipulation;
+}
+
+/* touch-action 不會繼承，互動元素要點名宣告，iOS 才不會把連點判成雙擊縮放 */
+.mode-btn, .ans-btn, .icon-btn, .big-btn, .plate {
+  touch-action: manipulation;
 }
 
 body {
