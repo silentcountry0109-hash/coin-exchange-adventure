@@ -12,7 +12,9 @@
   const FAST = params.get('fast') === '1';       // 測試加速模式
   const SPEED = FAST ? 0.12 : 1;                 // 時間倍率
   const URL_SEED = params.has('seed') ? Number(params.get('seed')) : null;
-  const URL_MODE = params.get('mode');
+  const URL_MODE = params.get('mode');            // 測試用：直接開跑、關語音
+  const URL_PLAY = params.get('play');            // 從太空站入口來的：顯示出發按鈕再開始
+  const MODES = ['add', 'sub', 'mul', 'div', 'mix'];
 
   const ms = (t) => Math.max(10, Math.round(t * SPEED));
 
@@ -33,6 +35,7 @@
   const trayEl = $('tray');
   const trayLabel = $('tray-label');
   const traySlotsEl = $('tray-slots');
+  const platesEl = $('plates');
   const answersEl = $('answers');
   const bubbleEl = $('bubble');
   const guideEl = $('guide');
@@ -42,6 +45,7 @@
   const hintHand = $('hint-hand');
   const groupRing = $('group-ring');
   const pd = { a: $('pd-a'), op: $('pd-op'), b: $('pd-b'), q: $('pd-q') };
+  const pdRem = $('pd-rem');
   const starsEl = $('stars');
   const sfx = window.sfx;
 
@@ -138,8 +142,23 @@
         }
       } catch (e) { /* 不支援就安靜 */ }
     },
+    // 還在講話嗎？（有 90ms 的延遲開口空窗，用 _t 一併視為忙碌）
+    busy() {
+      if (!this.on) return false;
+      try { return speechSynthesis.speaking || speechSynthesis.pending; }
+      catch (e) { return false; }
+    },
     stop() { clearTimeout(this._t); try { speechSynthesis.cancel(); } catch (e) {} },
   };
+
+  // 等這句真的唸完才繼續（輪詢 + 字數上限保險），旁白不再被下一句喀掉。
+  // 上限防止某些瀏覽器 speaking 卡 true 造成流程卡死。
+  async function speechDrain(text) {
+    if (FAST || !speech.on || !soundOn) return;
+    const cap = performance.now() + 2500 + text.length * 480;
+    await sleep(160); // 先等 speak() 的 90ms 延遲開口
+    while (speech.busy() && performance.now() < cap) await sleep(140);
+  }
 
   /* ---------------- Lottie 角色（失敗時退回 GIF） ---------------- */
   const lotties = { title: [], game: [], end: [] };
@@ -238,11 +257,12 @@
     }
     async moveTo(x, y, opts) { this.glideTo(x, y, opts); await sleep((opts && opts.dur) || 450); }
     async pulse() {
+      const base = this.scale; // 相對縮放：盤子上的迷你硬幣也能正確脈衝
       this.el.style.transition = 'transform 130ms ease-out';
-      this.scale = 1.32; this.apply();
+      this.scale = base * 1.32; this.apply();
       await sleep(140);
       this.el.style.transition = 'transform 200ms ease-in';
-      this.scale = 1; this.apply();
+      this.scale = base; this.apply();
     }
     setDragging(on) {
       this.el.classList.toggle('dragging', on);
@@ -277,14 +297,85 @@
   function newQuestionState(p) {
     return {
       p,
-      phase: 'idle',           // dealing / add-work / sub-work / anim / count / answer / done
+      phase: 'idle',           // dealing / add-work / sub-work / mul-pour / div-work / anim / count / answer / done
       tensCoins: [], onesCoins: [],
       board: { tens: 0, ones: 0 },
-      group: null,             // 加法進位時的 10 枚 1 元
+      group: null,             // 加法/乘法進位時的 10 枚 1 元
       exchangeDone: false,
       pay: null,               // { needT, needO, gotT, gotO, slotT:[], slotO:[] }
+      plates: [],              // 乘除法的小朋友盤子
+      askValue: null,          // 目前答案題的正解（商 → 餘數會換）
+      countSet: null,          // 手動點數：待點的錢
+      counted: new Set(),      // 手動點數：點過的錢
       wrongAnswers: 0,
     };
+  }
+
+  /* ---------------- 小朋友盤子（乘法收錢 / 除法分錢） ---------------- */
+  const PLATE_CHARS = [
+    { img: 'deco_bird.png', name: '小鳥' },
+    { img: 'deco_hedgehog.png', name: '刺蝟' },
+    { img: 'deco_news_mammoth.png', name: '長毛象' },
+    { img: 'deco_location_people.png', name: '太空人' },
+  ];
+  const MINI = 0.62; // 盤子上迷你硬幣的縮放
+
+  function buildPlates(n) {
+    platesEl.innerHTML = '';
+    Q.plates = [];
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('div');
+      d.className = 'plate';
+      d.innerHTML = '<img src="assets/' + PLATE_CHARS[i].img + '" alt="' + PLATE_CHARS[i].name + '">'
+        + '<div class="plate-slots"></div><div class="plate-badge">0 元</div>';
+      platesEl.appendChild(d);
+      Q.plates.push({
+        el: d, idx: i,
+        slotsEl: d.querySelector('.plate-slots'),
+        badgeEl: d.querySelector('.plate-badge'),
+        coins: [], value: 0, poured: false,
+      });
+    }
+    platesEl.classList.add('show');
+  }
+  function platesOff() {
+    platesEl.classList.remove('show');
+    platesEl.innerHTML = '';
+    if (Q) Q.plates = [];
+  }
+  // 硬幣進盤子：長出一個迷你格、換錨、縮小、鎖定
+  function platePut(plate, coin, opts) {
+    const slot = document.createElement('div');
+    slot.className = 'pslot ' + (coin.denom === 10 ? 'p10' : 'p1');
+    plate.slotsEl.appendChild(slot);
+    coin.anchor = slot;
+    coin.el.classList.add('locked');
+    plate.coins.push(coin);
+    plate.value += coin.denom;
+    plate.badgeEl.textContent = plate.value + ' 元';
+    // 新格子長出來會讓置中排版位移，把這盤的舊硬幣一併校正回各自的格心
+    for (const c of plate.coins) {
+      const t = centerInLayer(c.anchor);
+      if (c === coin) c.glideTo(t.x, t.y, Object.assign({ dur: 420, scale: MINI }, opts || {}));
+      else c.glideTo(t.x, t.y, { dur: 160, scale: MINI });
+    }
+  }
+  function plateIndexAt(cx, cy) {
+    if (!Q || !Q.plates.length) return -1;
+    for (let i = 0; i < Q.plates.length; i++) {
+      if (inflatedContains(Q.plates[i].el, cx, cy, 10)) return i;
+    }
+    // 落在盤子列裡就寬鬆地給最近的盤子（小手指友善）
+    if (inflatedContains(platesEl, cx, cy, 6)) {
+      let best = 0, bd = Infinity;
+      for (let i = 0; i < Q.plates.length; i++) {
+        const c = centerOf(Q.plates[i].el);
+        const d = Math.hypot(c.x - cx, c.y - cy);
+        if (d < bd) { bd = d; best = i; }
+      }
+      return best;
+    }
+    return -1;
   }
 
   function updateBadges() {
@@ -303,10 +394,11 @@
     bubbleEl.classList.add('show');
     if (!opts.silent) speech.speak(text);
   }
-  // 停留時間以 zh-TW 語速（每字約 260ms）估算，確保整句唸得完
+  // 最少停 hold 毫秒，之後若語音還沒唸完就繼續等到唸完（speechDrain 有保險上限）
   async function sayWait(text, hold) {
     say(text);
-    await sleep(hold != null ? hold : Math.max(2000, 700 + text.length * 260));
+    await sleep(hold != null ? hold : Math.max(1800, 600 + text.length * 200));
+    await speechDrain(text);
   }
   // 苦惱：搖頭 + 汗滴 + 警告泡泡 + 哎呀音
   function worry(text) {
@@ -319,6 +411,12 @@
     guideEl.classList.add('worried');
     clearTimeout(worryTimer);
     worryTimer = setTimeout(() => guideEl.classList.remove('worried'), 1600);
+  }
+  // 流程中的苦惱：等孩子看完、也等語音唸完，下一句才接上
+  async function worryWait(text, hold) {
+    worry(text);
+    await sleep(hold != null ? hold : Math.max(2200, 600 + text.length * 200));
+    await speechDrain(text);
   }
 
   /* ---------------- 計數大字 / 標語 ---------------- */
@@ -394,7 +492,31 @@
       } else if (need.tLeft > 0 && Q.tensCoins.length) {
         showHint(centerOf(Q.tensCoins[Q.tensCoins.length - 1].el), centerOf(traySlotsEl));
       }
+    } else if (Q.phase === 'div-work' && Q.plates.length) {
+      const n = Q.plates.length, b = Q.board;
+      if (b.tens >= n && Q.tensCoins.length) {
+        showHint(centerOf(Q.tensCoins[Q.tensCoins.length - 1].el), centerOf(Q.plates[0].el));
+      } else if (b.tens > 0 && Q.tensCoins.length) {
+        showHint(centerOf(Q.tensCoins[Q.tensCoins.length - 1].el), centerOf(machineBody));
+      } else if (b.ones >= n && Q.onesCoins.length) {
+        showHint(centerOf(Q.onesCoins[Q.onesCoins.length - 1].el), centerOf(Q.plates[0].el));
+      }
+    } else if (Q.phase === 'mul-pour') {
+      pulseNextPlate();
+    } else if (Q.phase === 'count' && Q.countSet) {
+      const next = [...Q.countSet].find((c) => !Q.counted.has(c));
+      if (next) showHint(centerOf(next.el), centerOf(next.el));
     }
+  }
+
+  // 乘法倒錢：提示下一個還沒倒的盤子（原地點一點的手勢）
+  function pulseNextPlate() {
+    if (!Q) return;
+    const next = Q.plates.find((pl) => !pl.poured);
+    if (!next) return;
+    next.el.classList.add('pulse');
+    const c = centerOf(next.el);
+    showHint(c, c);
   }
 
   /* ---------------- 發牌（把錢排上桌） ---------------- */
@@ -467,13 +589,35 @@
       if (Q.group && Q.group.includes(coin)) return { coins: Q.group.slice(), isGroup: true };
       return { coins: [coin], isGroup: false }; // 散幣或 10 元：可拖（錯誤教學用）
     }
-    if (Q.phase === 'sub-work') {
+    if (Q.phase === 'sub-work' || Q.phase === 'div-work') {
       if (Q.tensCoins.includes(coin) || Q.onesCoins.includes(coin)) return { coins: [coin], isGroup: false };
     }
     return null;
   }
 
   function onPointerDown(e) {
+    // 手動點數：點一個算一個
+    if (Q && Q.phase === 'count' && Q.countSet) {
+      const el = e.target && e.target.closest ? e.target.closest('.coin') : null;
+      const coin = el && el.__coin;
+      if (coin && Q.countSet.has(coin) && !Q.counted.has(coin)) {
+        e.preventDefault();
+        sfx.unlock();
+        tapCount(coin);
+      }
+      return;
+    }
+    // 乘法倒錢：盤子上的迷你硬幣蓋住盤面（coin-layer 在上層），
+    // 點到「盤子上的錢」也要視同點到盤子，否則錢堆是點擊死區
+    if (Q && Q.phase === 'mul-pour') {
+      const pi = plateIndexAt(e.clientX, e.clientY);
+      if (pi >= 0) {
+        e.preventDefault();
+        sfx.unlock();
+        pourPlate(Q.plates[pi]).catch((err) => { if (!err.isCancel) throw err; });
+      }
+      return;
+    }
     const coinEl = e.target && e.target.closest ? e.target.closest('.coin') : null;
     if (!coinEl || !coinEl.__coin) return;
     const info = draggableCheck(coinEl.__coin);
@@ -507,6 +651,10 @@
     // 拖到目標上的高亮
     machineEl.classList.toggle('drag-over', overMachine(cx, cy));
     trayEl.classList.toggle('drag-over', trayEl.classList.contains('show') && overTray(cx, cy));
+    if (Q && Q.phase === 'div-work' && Q.plates.length) {
+      const pi = plateIndexAt(cx, cy);
+      Q.plates.forEach((pl, i) => pl.el.classList.toggle('drag-over', i === pi));
+    }
   }
 
   function overMachine(cx, cy) { return inflatedContains(machineBody, cx, cy, 20); }
@@ -525,6 +673,7 @@
     drag.active = false;
     machineEl.classList.remove('drag-over');
     trayEl.classList.remove('drag-over');
+    if (Q) Q.plates.forEach((pl) => pl.el.classList.remove('drag-over'));
     for (const c of coins) c.setDragging(false);
     handleDrop(coins, isGroup, e.clientX, e.clientY);
   }
@@ -586,7 +735,85 @@
       hideHint(true);
       return;
     }
+
+    if (Q.phase === 'div-work') {
+      const n = Q.plates.length;
+      if (overMachine(cx, cy)) {
+        const v = GL.divVerdict('machine', denom, Q.board, n);
+        if (v.ok) { runExchangeB2S(coins[0]); return; }
+        if (v.reason === 'one-not-needed') worry('1 元不用換喔！1 元可以直接分給大家！');
+        else if (v.reason === 'still-shareable') worry('10 元還夠每人分 1 個，先分給大家吧！');
+        else worry('現在不用換錢喔！');
+        snapBack(coins);
+        hideHint(true);
+        return;
+      }
+      const pi = plateIndexAt(cx, cy);
+      if (pi >= 0) {
+        const v = GL.divVerdict('plate', denom, Q.board, n);
+        if (v.ok) {
+          dealRound(coins[0], pi).catch((err) => { if (!err.isCancel) throw err; });
+          return;
+        }
+        if (v.reason === 'need-exchange') worry('10 元不夠每人分 1 個了！拖去換錢機換開吧！');
+        else if (v.reason === 'tens-first') worry('先分 10 元，再分 1 元喔！');
+        else if (v.reason === 'remainder') worry('剩下的 1 元不夠每人分一個，這是餘數，留在桌上！');
+        snapBack(coins);
+        hideHint(true);
+        return;
+      }
+      snapBack(coins);
+      hideHint(true);
+      return;
+    }
     snapBack(coins);
+  }
+
+  /* ---------------- 除法：分一輪（拖 1 個，其他小朋友也各拿 1 個） ---------------- */
+  async function dealRound(coin, plateIdx) {
+    Q.phase = 'anim';
+    hideHint(false);
+    const denom = coin.denom;
+    const arr = denom === 10 ? Q.tensCoins : Q.onesCoins;
+    arr.splice(arr.indexOf(coin), 1);
+    if (denom === 10) Q.board.tens--; else Q.board.ones--;
+    platePut(Q.plates[plateIdx], coin, { dur: 260 });
+    sfx.clink(denom === 10);
+    updateBadges();
+    await sleep(340);
+    const roundLine = '一人一個，大家都有！';
+    say(roundLine);
+    for (let k = 1; k < Q.plates.length; k++) {
+      const idx = (plateIdx + k) % Q.plates.length;
+      const c = arr.pop(); // 從尾端拿，前面的格子保持整齊
+      if (denom === 10) Q.board.tens--; else Q.board.ones--;
+      platePut(Q.plates[idx], c, { dur: 430 });
+      sfx.clink(denom === 10);
+      updateBadges();
+      await sleep(360);
+    }
+    await sleep(280);
+    await speechDrain(roundLine); // 唸完才接下一句（含直接進餘數說明的路徑）
+
+    // 沒有 10 元、1 元又湊不滿一輪 → 結束（剩的是餘數，或剛好分完）
+    const b = Q.board, n = Q.plates.length;
+    const finished = b.tens === 0 && b.ones < n;
+    if (finished) { fireSignal(); return; }
+
+    if (denom === 10) {
+      if (b.tens >= n) {
+        say('10 元還夠，繼續分！');
+      } else if (b.tens > 0) {
+        await worryWait('10 元剩 ' + b.tens + ' 個，不夠每人分 1 個了…', 2400);
+        say('把 10 元拖進鯊魚的換錢機，換成 10 個 1 元！');
+      } else {
+        say('10 元分完了！接下來分 1 元！');
+      }
+    } else if (b.ones >= n) {
+      say('1 元還夠，繼續分！');
+    }
+    Q.phase = 'div-work';
+    reshowHintForPhase();
   }
 
   /* ---------------- 付錢盤 ---------------- */
@@ -690,7 +917,8 @@
       const mc = centerOf(machineTrayOut);
       burstStars(mc.x, mc.y - 10, 8);
       await sleep(1400); // 停一下，讓孩子看清楚
-      say('個位滿 10 個，換到十位，變出 1 個 10 元！錢沒有變少喔！');
+      const conserveLine = '個位滿 10 個，換到十位，變出 1 個 10 元！錢沒有變少喔！';
+      say(conserveLine);
       const idx = Q.tensCoins.length;
       const target = tensSlotCenter(idx);
       ten.anchor = tenSlots[idx];
@@ -704,6 +932,7 @@
       relayoutOnes();
       Q.exchangeDone = true;
       await sleep(1400);
+      await speechDrain(conserveLine); // 「錢沒有變少」是核心概念，唸完才接下一句
       // 位值總結：把「10 元/1 元」連回「十位/個位」
       await sayWait('現在十位有 ' + Q.tensCoins.length + ' 個 10 元，個位有 ' + Q.onesCoins.length + ' 個 1 元！', 3000);
       fireSignal();
@@ -754,35 +983,82 @@
       Q.board.ones += 10;
       Q.exchangeDone = true;
       await sleep(500);
-      await sayWait('跟十位換了 1 個 10 元，變成 10 個 1 元！錢一樣多，現在夠付了！', 4200);
-      Q.phase = 'sub-work';
-      say('繼續把要付的錢，拖到粉紅盤子裡！');
+      if (Q.p.op === 'div') {
+        await sayWait('1 個 10 元變成 10 個 1 元！錢一樣多，現在夠大家分了！', 3800);
+        Q.phase = 'div-work';
+        say('繼續分！拖 1 個 1 元，放到小朋友的盤子裡！');
+      } else {
+        await sayWait('跟十位換了 1 個 10 元，變成 10 個 1 元！錢一樣多，現在夠付了！', 4200);
+        Q.phase = 'sub-work';
+        say('繼續把要付的錢，拖到粉紅盤子裡！');
+      }
       reshowHintForPhase();
     } catch (e) { if (!e.isCancel) throw e; }
   }
 
-  /* ---------------- 點數 ---------------- */
-  async function countUp(speedMul) {
-    const mul = speedMul || 1;
-    const seq = GL.countSequence({ tens: Q.tensCoins.length, ones: Q.onesCoins.length });
-    const coins = Q.tensCoins.concat(Q.onesCoins);
-    for (let i = 0; i < coins.length; i++) {
-      coins[i].pulse().catch(() => {});
-      sfx.tick(i);
-      counterShow(seq[i], 30);
-      await sleep((i < Q.tensCoins.length ? 650 : 540) * mul);
+  /* ---------------- 點數（手動）：孩子自己一個一個點 ----------------
+   * 點一個錢 → 跳出那個錢的面額（點 10 元跳「10」，不自動加總）、
+   * 外圈變綠做記號、點過不能再點；全部點完才進入答案選項。 */
+  function spawnTapNum(coin) {
+    const L = layerRect();
+    const c = centerOf(coin.el);
+    const el = document.createElement('div');
+    el.className = 'tap-num';
+    el.textContent = coin.denom;
+    el.style.left = (c.x - L.left) + 'px';
+    el.style.top = (c.y - L.top) + 'px';
+    fxLayer.appendChild(el);
+    el.animate([
+      { transform: 'translate(-50%,-70%) scale(.4)', opacity: 0 },
+      { transform: 'translate(-50%,-140%) scale(1.2)', opacity: 1, offset: 0.3 },
+      { transform: 'translate(-50%,-160%) scale(1.05)', opacity: 1, offset: 0.7 },
+      { transform: 'translate(-50%,-230%) scale(1)', opacity: 0 },
+    ], { duration: ms(1000), easing: 'ease-out' }).onfinish = () => el.remove();
+  }
+
+  function tapCount(coin) {
+    Q.counted.add(coin);
+    coin.el.classList.add('counted');
+    hideHint(true);
+    sfx.tick(Q.counted.size - 1);
+    coin.pulse().catch(() => {});
+    spawnTapNum(coin);
+    if (Q.counted.size >= Q.countSet.size) {
+      Q.countSet = null;
+      fireSignal(); // 全部點完
     }
-    await sleep(600 * mul);
-    counterHide();
+  }
+
+  async function manualCount(coins) {
+    Q.phase = 'count';
+    Q.countSet = new Set(coins);
+    Q.counted = new Set();
+    // 數數時把「幾個＝幾元」的自動加總遮起來，讓孩子自己算
+    badgeTens.textContent = '？';
+    badgeOnes.textContent = '？';
+    for (const pl of Q.plates) pl.badgeEl.textContent = '？';
+    const first = coins[0];
+    if (first) showHint(centerOf(first.el), centerOf(first.el));
+    await waitSignal();
+    hideHint(false);
+    await sleep(350);
   }
 
   /* ---------------- 答案選項 ---------------- */
+  const ASK_TEXT = {
+    add: '一共是多少元呢？',
+    sub: '還剩下多少元呢？',
+    mul: '一共是多少元呢？',
+    div: '每個小朋友分到多少元呢？',
+  };
+
   async function askAnswer(p, rng) {
     Q.phase = 'answer';
+    Q.askValue = p.answer;
     pd.q.classList.add('pulse');
     const options = GL.makeOptions(p, rng);
     answersEl.innerHTML = '';
-    say(p.op === 'add' ? '一共是多少元呢？' : '還剩下多少元呢？');
+    say(ASK_TEXT[p.op]);
 
     await new Promise((resolve, reject) => {
       run.waiters.push({ reject });
@@ -806,17 +1082,26 @@
             Q.wrongAnswers++; G.wrongTotal++;
             // 診斷式回饋：差 10 的錯誤＝忘了進位/退位，點出具體原因
             let msg;
-            if (p.op === 'add' && v === p.answer - 10) {
+            if ((p.op === 'add' || p.op === 'mul') && v === p.answer - 10) {
               msg = '咦，是不是忘記換錢機變出來的那 1 個 10 元呀？我們再數一次！';
             } else if (p.op === 'sub' && v === p.answer + 10) {
               msg = '是不是有 1 個 10 元已經付給鯊魚了呢？我們再數一次！';
+            } else if (p.op === 'div') {
+              msg = '再看一次小鳥盤子裡的錢，我們慢慢數！';
             } else {
               msg = '只差一點點！這次慢慢數！';
             }
-            worry(msg);
             try {
-              await sleep(2800);
-              await countUp(1); // 重數要一樣慢，不能變快
+              await worryWait(msg, 2600); // 等孩子聽完診斷，再重數
+              // 把記號擦掉，讓孩子自己再點一次
+              const coins = p.op === 'div'
+                ? Q.plates[0].coins.slice()
+                : Q.tensCoins.concat(Q.onesCoins);
+              for (const c of coins) c.el.classList.remove('counted');
+              const recount = manualCount(coins);
+              say('慢慢點、慢慢數，不要急！');
+              await recount;
+              Q.phase = 'answer';
               say('現在知道答案了嗎？');
             } catch (err) { if (err.isCancel) return reject(err); }
             busy = false;
@@ -831,20 +1116,71 @@
     pd.q.classList.add('solved');
   }
 
+  /* ---------------- 餘數加問（除法有剩時） ---------------- */
+  async function askRemainder(p, rng) {
+    Q.phase = 'answer';
+    Q.askValue = p.remainder;
+    pdRem.textContent = '剩 ?';
+    pdRem.classList.add('pulse');
+    const options = GL.makeRemainderOptions(p, rng);
+    answersEl.innerHTML = '';
+    say('那桌上剩下幾元，分不完呢？');
+
+    await new Promise((resolve, reject) => {
+      run.waiters.push({ reject });
+      let busy = false;
+      options.forEach((v) => {
+        const b = document.createElement('button');
+        b.className = 'ans-btn';
+        b.textContent = v;
+        b.addEventListener('click', async () => {
+          if (busy || run.cancelled) return;
+          if (v === p.remainder) {
+            busy = true;
+            b.classList.add('correct');
+            sfx.yay();
+            const c = centerOf(b);
+            burstStars(c.x, c.y, 10);
+            resolve();
+          } else {
+            busy = true;
+            b.classList.add('wrong');
+            Q.wrongAnswers++; G.wrongTotal++;
+            try {
+              await worryWait('看看桌上剩下的 1 元，一個一個數！', 2400);
+              for (const c of Q.onesCoins) { c.pulse().catch(() => {}); await sleep(500); }
+            } catch (err) { if (err.isCancel) return reject(err); }
+            busy = false;
+          }
+        });
+        answersEl.appendChild(b);
+      });
+    });
+
+    pdRem.classList.remove('pulse');
+    pdRem.textContent = '剩 ' + p.remainder;
+    pdRem.classList.add('solved');
+    answersEl.innerHTML = '';
+  }
+
   /* ---------------- 單題流程 ---------------- */
+  const OP_SIGNS = { add: '＋', sub: '－', mul: '×', div: '÷' };
   function setProblemDisplay(p) {
     pd.a.textContent = p.a;
-    pd.op.textContent = p.op === 'add' ? '＋' : '－';
+    pd.op.textContent = OP_SIGNS[p.op];
     pd.b.textContent = p.b;
     pd.b.style.textShadow = ''; // 發牌中被 🏠 中斷時的高亮殘留
     pd.q.textContent = '?';
     pd.q.classList.remove('solved', 'pulse');
+    pdRem.textContent = '';
+    pdRem.classList.remove('solved', 'pulse');
   }
 
   function clearBoard() {
     for (const el of coinLayer.querySelectorAll('.coin')) el.remove();
     if (Q) { Q.tensCoins = []; Q.onesCoins = []; Q.group = null; }
     dissolveGroupUI();
+    platesOff();
     trayEl.classList.remove('show');
     traySlotsEl.innerHTML = '';
     answersEl.innerHTML = '';
@@ -881,9 +1217,9 @@
       await sayWait('1 元沒有滿 10 個，不用換錢，直接數！', 2800);
     }
 
-    Q.phase = 'count';
-    await sayWait('我們一起數數看！', 1600);
-    await countUp();
+    const counting = manualCount(Q.tensCoins.concat(Q.onesCoins));
+    say('換你數數看！把每一個錢，一個一個點！');
+    await counting;
     await askAnswer(p, rng);
   }
 
@@ -903,10 +1239,9 @@
       const oa = GL.onesOf(p.a), ob = GL.onesOf(p.b);
       await sayWait('要付 ' + p.b + ' 元！先看看 1 元夠不夠～', 2800);
       if (!Q.exchangeDone && Q.phase === 'sub-work') {
-        worry(oa === 0
+        await worryWait(oa === 0
           ? ('要付 ' + ob + ' 個 1 元，可是 1 元一個都沒有，不夠付！')
-          : ('要付 ' + ob + ' 個 1 元，可是只有 ' + oa + ' 個，不夠付！'));
-        await sleep(3400);
+          : ('要付 ' + ob + ' 個 1 元，可是只有 ' + oa + ' 個，不夠付！'), 3000);
       }
       if (!Q.exchangeDone && Q.phase === 'sub-work') {
         say('把 1 個 10 元，拖進鯊魚的換錢機，換成 10 個 1 元吧！');
@@ -934,10 +1269,143 @@
     paidCoins.forEach((c) => c.destroy());
     trayEl.classList.remove('show');
 
-    Q.phase = 'count';
-    await sayWait('剩下的就是答案！一起數數看！', 2600);
-    await countUp();
+    const counting = manualCount(Q.tensCoins.concat(Q.onesCoins));
+    say('剩下的就是答案！換你數數看，一個一個點！');
+    await counting;
     await askAnswer(p, rng);
+  }
+
+  /* ---------------- 乘法流程 ---------------- */
+  async function dealToPlate(plate, denom) {
+    const from = centerInLayer($('lottie-guide'));
+    const c = new Coin(denom);
+    c.placeAt(from.x, from.y, { scale: 0.3 });
+    platePut(plate, c, { dur: 430 });
+    sfx.whoosh();
+    setTimeout(() => { if (!run.cancelled) sfx.clink(denom === 10); }, ms(420));
+    await sleep(170);
+  }
+
+  async function pourPlate(plate) {
+    if (!Q || Q.phase !== 'mul-pour' || plate.poured) return;
+    plate.poured = true;
+    plate.el.classList.remove('pulse');
+    hideHint(false);
+    sfx.pop();
+    Q.phase = 'anim'; // 倒錢中不接受其他操作
+    const coins = plate.coins.slice(); // 發牌順序即 10 元在前
+    for (const c of coins) {
+      if (run.cancelled) throw new CancelError();
+      c.el.classList.remove('locked');
+      let slotEl;
+      if (c.denom === 10) {
+        slotEl = tenSlots[Q.tensCoins.length];
+        Q.tensCoins.push(c);
+      } else {
+        slotEl = oneSlots[Q.onesCoins.length];
+        Q.onesCoins.push(c);
+      }
+      c.anchor = slotEl;
+      const t = centerInLayer(slotEl);
+      c.glideTo(t.x, t.y, { dur: 380, scale: 1 });
+      sfx.clink(c.denom === 10);
+      updateBadges();
+      await sleep(150);
+    }
+    plate.coins = [];
+    plate.value = 0;
+    plate.badgeEl.textContent = '倒好了！';
+    plate.slotsEl.innerHTML = '';
+    plate.el.classList.add('done');
+    await sleep(250);
+    if (Q.plates.some((pl) => !pl.poured)) {
+      Q.phase = 'mul-pour';
+      pulseNextPlate();
+    } else {
+      fireSignal(); // 全部倒完
+    }
+  }
+
+  async function runMulQuestion(p, rng) {
+    const m = p.a, n = p.b;
+    await sayWait('我們來算 ' + m + ' 乘以 ' + n + '！有 ' + n + ' 個小朋友，每個人都有 ' + m + ' 元！', 3400);
+    Q.phase = 'dealing';
+    buildPlates(n);
+    for (let i = 0; i < n; i++) {
+      const plate = Q.plates[i];
+      for (let k = 0; k < GL.tensOf(m); k++) await dealToPlate(plate, 10);
+      for (let k = 0; k < GL.onesOf(m); k++) await dealToPlate(plate, 1);
+      await sleep(140);
+    }
+    await sayWait(n + ' 個人都有 ' + m + ' 元！那一共是多少呢？', 2600);
+    Q.phase = 'mul-pour';
+    say('把大家的錢通通放到桌上！點一下小朋友的盤子！');
+    pulseNextPlate();
+    await waitSignal(); // 全部倒完（pourPlate 觸發）
+    Q.board = { tens: GL.tensOf(m) * n, ones: GL.onesOf(m) * n };
+    platesOff();
+
+    if (GL.needsExchange(p)) {
+      await sayWait('哇！1 元有 ' + Q.board.ones + ' 個，滿 10 個了！', 3000);
+      formGroup();
+      Q.phase = 'add-work'; // 與加法進位共用換錢流程
+      say('把發光的 10 個 1 元，拖進鯊魚的換錢機！');
+      const g = Q.group[4] || Q.group[0];
+      showHint(centerOf(g.el), centerOf(machineBody));
+      await waitSignal(); // 換錢完成
+    } else {
+      await sayWait('1 元沒有滿 10 個，不用換錢，直接數！', 2800);
+    }
+
+    const counting = manualCount(Q.tensCoins.concat(Q.onesCoins));
+    say('換你數數看！把每一個錢，一個一個點！');
+    await counting;
+    await askAnswer(p, rng);
+  }
+
+  /* ---------------- 除法流程 ---------------- */
+  async function runDivQuestion(p, rng) {
+    const A = p.a, n = p.b;
+    await sayWait('我們來算 ' + A + ' 除以 ' + n + '！要把 ' + A + ' 元，平平分給 ' + n + ' 個小朋友！', 3600);
+    Q.phase = 'dealing';
+    await dealCoins(10, GL.tensOf(A), $('lottie-guide'));
+    await dealCoins(1, GL.onesOf(A), $('lottie-guide'));
+    Q.board = { tens: GL.tensOf(A), ones: GL.onesOf(A) };
+    buildPlates(n);
+    await sleep(400);
+    Q.phase = 'div-work';
+    if (Q.board.tens >= n) {
+      await sayWait('先分 10 元！拖 1 個 10 元，放到一個小朋友的盤子裡！', 3000);
+    } else {
+      // 每一步都確認孩子還沒搶先把 10 元投進換錢機（空窗約 2.6 秒）
+      if (!Q.exchangeDone && Q.phase === 'div-work') {
+        await worryWait('10 元只有 ' + Q.board.tens + ' 個，沒辦法每人分 1 個！', 2600);
+      }
+      if (!Q.exchangeDone && Q.phase === 'div-work') {
+        say('把 10 元拖進鯊魚的換錢機，換成 10 個 1 元吧！');
+      }
+    }
+    if (Q.phase === 'div-work') reshowHintForPhase(); // 孩子可能已搶先動作
+    await waitSignal(); // 分完（dealRound 觸發）
+    Q.phase = 'anim';
+    hideHint(false);
+
+    if (p.remainder > 0) {
+      for (const c of Q.onesCoins) c.pulse().catch(() => {});
+      caption('剩下 ' + p.remainder + ' 元 ＝ 餘數');
+      sfx.ding();
+      await sayWait('剩下 ' + p.remainder + ' 個 1 元，不夠每人再分一個了！這就是「餘數」！', 4000);
+    } else {
+      await sayWait('剛剛好分完，沒有剩下！', 2200);
+    }
+
+    Q.plates[0].el.classList.add('counting');
+    const counting = manualCount(Q.plates[0].coins.slice());
+    say('點一點' + PLATE_CHARS[0].name + '盤子裡的錢，數數看每人分到多少元！');
+    await counting;
+    Q.plates[0].el.classList.remove('counting');
+    await askAnswer(p, rng);
+    if (p.remainder > 0) await askRemainder(p, rng);
   }
 
   /* ---------------- 一場（5 題） ---------------- */
@@ -979,7 +1447,9 @@
         updateBadges();
         await sleep(500);
         if (p.op === 'add') await runAddQuestion(p, rng);
-        else await runSubQuestion(p, rng);
+        else if (p.op === 'sub') await runSubQuestion(p, rng);
+        else if (p.op === 'mul') await runMulQuestion(p, rng);
+        else await runDivQuestion(p, rng);
 
         // 過關！（先讓答對的 yay 收尾，再吹號角，旋律才不打架）
         Q.phase = 'done';
@@ -1041,6 +1511,16 @@
     $('btn-again').addEventListener('click', () => { sfx.unlock(); speech.prime(); sfx.tap(); runSession(G.mode); });
     $('btn-menu').addEventListener('click', () => { sfx.tap(); showScreen('title'); });
 
+    // 乘法：點盤子倒錢
+    platesEl.addEventListener('pointerdown', (e) => {
+      const el = e.target && e.target.closest ? e.target.closest('.plate') : null;
+      if (!el || !Q || Q.phase !== 'mul-pour') return;
+      const plate = Q.plates.find((pl) => pl.el === el);
+      if (!plate) return;
+      sfx.unlock();
+      pourPlate(plate).catch((err) => { if (!err.isCancel) throw err; });
+    });
+
     // 拖曳
     coinLayer.addEventListener('pointerdown', onPointerDown, { passive: false });
     window.addEventListener('pointermove', onPointerMove, { passive: false });
@@ -1091,15 +1571,32 @@
     get problem() { return Q ? Q.p : null; },
     get board() { return Q ? { tens: Q.tensCoins.length, ones: Q.onesCoins.length } : null; },
     get pay() { return Q ? Q.pay : null; },
+    get plates() { return Q ? Q.plates.map((pl) => ({ value: pl.value, coins: pl.coins.length, poured: pl.poured })) : []; },
+    get askValue() { return Q ? Q.askValue : null; },
+    get countLeft() { return Q && Q.countSet ? Q.countSet.size - Q.counted.size : 0; },
     get qIndex() { return G.qIndex; },
     get wrongTotal() { return G.wrongTotal; },
     get session() { return G.session; },
     startMode(mode) { runSession(mode); },
     pump() { pumpTimers(); },
     goHome() { $('btn-home').click(); },
+    tapPlate(i) {
+      if (!Q || !Q.plates[i]) return false;
+      Q.plates[i].el.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true, cancelable: true, pointerId: 9, isPrimary: true,
+        pointerType: 'touch', clientX: 0, clientY: 0, button: 0, buttons: 1,
+      }));
+      return true;
+    },
     centers: {
       machine() { return centerOf(machineBody); },
       tray() { return centerOf(traySlotsEl); },
+      plate(i) { return Q && Q.plates[i || 0] ? centerOf(Q.plates[i || 0].el) : null; },
+      uncountedCoin() {
+        if (!Q || !Q.countSet) return null;
+        const c = [...Q.countSet].find((x) => !Q.counted.has(x));
+        return c ? centerOf(c.el) : null;
+      },
       groupedCoin() {
         if (!Q || !Q.group || !Q.group.length) return null;
         return centerOf((Q.group[4] || Q.group[0]).el);
@@ -1125,11 +1622,11 @@
       return true;
     },
     clickAnswer(correct) {
-      const p = Q && Q.p;
-      if (!p) return false;
+      if (!Q || Q.askValue == null) return false;
+      const want = Q.askValue; // 目前這一問的正解（除法會先問商、再問餘數）
       for (const b of answersEl.querySelectorAll('.ans-btn')) {
         const v = Number(b.textContent);
-        if (correct ? v === p.answer : v !== p.answer) { b.click(); return v; }
+        if (correct ? v === want : v !== want) { b.click(); return v; }
       }
       return false;
     },
@@ -1145,9 +1642,20 @@
     mountChar('lottie-end-boy', window.LOTTIE_BOY, 'boy.gif', 'end');
     bindUI();
     playScreenChars('title');
-    if (URL_MODE) {
+    if (URL_MODE && MODES.includes(URL_MODE)) {
       speech.on = false;
       runSession(URL_MODE);
+    } else if (URL_PLAY && MODES.includes(URL_PLAY)) {
+      // 從太空站入口來的：先顯示出發按鈕（點擊手勢＝解鎖 iOS 音訊與語音）
+      const ov = $('start-overlay');
+      const labels = { add: '➕ 加法星球', sub: '➖ 減法星球', mul: '✖️ 乘法星球', div: '➗ 除法星球', mix: '🌟 混合銀河' };
+      $('start-mode-label').textContent = labels[URL_PLAY];
+      ov.classList.add('show');
+      $('btn-start').addEventListener('click', () => {
+        sfx.unlock(); speech.prime(); sfx.tap();
+        ov.classList.remove('show');
+        runSession(URL_PLAY);
+      }, { once: true });
     }
   }
 

@@ -80,7 +80,57 @@
       : { op: 'sub', a: 38, b: 12, answer: 26, exchange: false };
   }
 
-  // 一場 5 題：第 1 題暖身（不進退位），之後都需要換錢；前段數字較小
+  // 乘法：a = 每人 m 元（二位數），b = 人數 n（2~4），積 ≤ maxResult ≤ 99
+  // carry=true 時保證個位總和 ≥ 10（要換錢進位）；≤ 19 → 只換一次、盤面放得下
+  function genMul(rng, opts) {
+    const carry = !!(opts && opts.carry);
+    const maxResult = Math.min((opts && opts.maxResult) || 99, 99);
+    for (let tries = 0; tries < 900; tries++) {
+      const n = rng.int(2, 4);
+      const m = rng.int(11, 48);
+      const product = n * m;
+      if (product > maxResult) continue;
+      if (onesOf(m) === 0) continue;      // 要有個位才有換錢戲
+      const onesTotal = n * onesOf(m);
+      const isCarry = onesTotal >= 10;
+      if (carry !== isCarry) continue;
+      if (isCarry && onesTotal > 19) continue;
+      return { op: 'mul', a: m, b: n, answer: product, exchange: isCarry };
+    }
+    return carry
+      ? { op: 'mul', a: 15, b: 3, answer: 45, exchange: true }
+      : { op: 'mul', a: 12, b: 3, answer: 36, exchange: false };
+  }
+
+  // 除法：a = 總錢 A（13~59），b = 人數 n（2~4），answer = 商，remainder = 餘數
+  // exchange=true 時保證十位分完剩「恰好 1 個」10 元 → 只需換一次錢
+  // 分 1 元的輪數 ≤ 6、分 10 元的輪數 ≤ 2，拖曳次數才不會累壞小朋友
+  function genDiv(rng, opts) {
+    const exchange = !!(opts && opts.exchange);
+    const wantRemainder = opts && opts.wantRemainder; // true=要餘數 / false=整除 / 其他=不限
+    const maxA = Math.min((opts && opts.maxA) || 59, 59);
+    for (let tries = 0; tries < 1500; tries++) {
+      const n = rng.int(2, 4);
+      const A = rng.int(13, maxA);
+      const tA = tensOf(A);
+      const needEx = tA % n !== 0;
+      if (exchange !== needEx) continue;
+      if (needEx && tA % n !== 1) continue;
+      const q = Math.floor(A / n), r = A % n;
+      if (q < 1) continue;
+      if (wantRemainder === true && r === 0) continue;
+      if (wantRemainder === false && r !== 0) continue;
+      const oneShare = Math.floor((onesOf(A) + (needEx ? 10 : 0)) / n);
+      if (oneShare > 6) continue;
+      if (Math.floor(tA / n) > 2) continue;
+      return { op: 'div', a: A, b: n, answer: q, remainder: r, exchange: needEx };
+    }
+    return exchange
+      ? { op: 'div', a: 31, b: 2, answer: 15, remainder: 1, exchange: true }
+      : { op: 'div', a: 36, b: 3, answer: 12, remainder: 0, exchange: false };
+  }
+
+  // 一場 5 題：第 1 題暖身（不進退位/不換錢），之後都需要換錢；前段數字較小
   function generateSession(mode, opts) {
     opts = opts || {};
     const rng = opts.rng || new Rng(opts.seed);
@@ -94,9 +144,10 @@
       const size = i < 2 ? 59 : 99;
       let p, guard = 0;
       do {
-        p = op === 'add'
-          ? genAdd(rng, { carry: hard, maxResult: size })
-          : genSub(rng, { borrow: hard, maxA: size });
+        if (op === 'add') p = genAdd(rng, { carry: hard, maxResult: size });
+        else if (op === 'sub') p = genSub(rng, { borrow: hard, maxA: size });
+        else if (op === 'mul') p = genMul(rng, { carry: hard, maxResult: size });
+        else p = genDiv(rng, { exchange: hard, wantRemainder: (i === 2 || i === 4) ? true : null });
         guard++;
       } while (used.has(p.a + p.op + '' + p.b) && guard < 60);
       used.add(p.a + p.op + '' + p.b);
@@ -109,13 +160,23 @@
   function makeOptions(p, rng) {
     rng = rng || new Rng();
     const ans = p.answer;
-    const wrongCarry = p.op === 'add' ? ans - 10 : ans + 10; // 忘記進位/退位
+    // 忘記換錢的典型錯誤：加/乘忘進位差 -10，減/除忘退位差 +10
+    const wrongCarry = (p.op === 'add' || p.op === 'mul') ? ans - 10 : ans + 10;
     const pool = [ans + 1, ans - 1, wrongCarry, ans + 10, ans - 10, ans + 2, ans - 2]
       .filter((v) => v >= 1 && v <= 99 && v !== ans);
     const uniq = [...new Set(pool)];
     rng.shuffle(uniq);
     const opts = [ans, uniq[0], uniq[1]];
     return rng.shuffle(opts);
+  }
+
+  // 餘數的三個選項（餘數 < 人數 ≤ 4，都是小數字）
+  function makeRemainderOptions(p, rng) {
+    rng = rng || new Rng();
+    const r = p.remainder || 0;
+    const pool = [0, 1, 2, 3].filter((v) => v !== r);
+    rng.shuffle(pool);
+    return rng.shuffle([r, pool[0], pool[1]]);
   }
 
   /* ---------- 盤面狀態 ---------- */
@@ -127,6 +188,8 @@
   }
   function needsExchange(p) {
     if (p.op === 'add') return onesOf(p.a) + onesOf(p.b) >= 10;
+    if (p.op === 'mul') return onesOf(p.a) * p.b >= 10;
+    if (p.op === 'div') return tensOf(p.a) % p.b !== 0;
     return onesOf(p.a) < onesOf(p.b);
   }
   // 小換大：10 個 1 元 → 1 個 10 元
@@ -169,11 +232,35 @@
     return { ok: false, reason: 'not-now' };
   }
 
+  /* ---------- 除法分錢裁決 ----------
+   * target: 'plate'（拖到小朋友盤子）或 'machine'（拖進換錢機）
+   * 規則：先分 10 元；10 元夠一輪（≥ n）就繼續分、剩 1~n-1 個要換開；
+   *       1 元夠一輪就分、不夠一輪的就是餘數 */
+  function divVerdict(target, denom, board, n) {
+    if (target === 'plate') {
+      if (denom === 10) {
+        if (board.tens >= n) return { ok: true };
+        return { ok: false, reason: 'need-exchange' };
+      }
+      if (board.tens > 0) return { ok: false, reason: 'tens-first' };
+      if (board.ones >= n) return { ok: true };
+      return { ok: false, reason: 'remainder' };
+    }
+    if (target === 'machine') {
+      if (denom === 1) return { ok: false, reason: 'one-not-needed' };
+      if (board.tens >= n) return { ok: false, reason: 'still-shareable' };
+      if (board.tens >= 1) return { ok: true };
+      return { ok: false, reason: 'no-tens' };
+    }
+    return { ok: false, reason: 'not-now' };
+  }
+
   return {
     Rng, tensOf, onesOf,
-    genAdd, genSub, generateSession, makeOptions,
+    genAdd, genSub, genMul, genDiv, generateSession,
+    makeOptions, makeRemainderOptions,
     boardOf, boardValue, boardAfterMerge, needsExchange,
     exchangeSmallToBig, exchangeBigToSmall, paymentFor,
-    countSequence, exchangeVerdict,
+    countSequence, exchangeVerdict, divVerdict,
   };
 });

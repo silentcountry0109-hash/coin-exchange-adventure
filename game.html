@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#bde4f8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>換錢大冒險｜二位數的錢幣數學</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23ffd166' stroke='%233a3844' stroke-width='6'/><text x='50' y='66' font-size='44' font-weight='bold' text-anchor='middle' fill='%237c5210'>10</text></svg>">
+<link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+<div id="app">
+
+  <!-- 背景 -->
+  <div id="bg-sky">
+    <div class="cloud c-a"></div>
+    <div class="cloud c-b"></div>
+    <div class="cloud c-c"></div>
+  </div>
+
+  <!-- ================= 標題畫面 ================= -->
+  <section id="screen-title" class="screen active">
+    <div class="hill h-a"></div>
+    <div class="hill h-b"></div>
+    <a id="btn-space" class="icon-btn" href="index.html" aria-label="回太空站">🌌</a>
+    <img id="title-deco-bird" src="assets/deco_bird.png" alt="">
+    <img id="title-deco-hedgehog" src="assets/deco_hedgehog.png" alt="">
+    <div id="logo" aria-label="換錢大冒險">
+      <span>換</span><span>錢</span><span>大</span><span>冒</span><span>險</span>
+    </div>
+    <div id="title-sub">二位數的錢幣數學教室</div>
+    <div id="title-chars">
+      <div id="lottie-title-elephant"></div>
+      <div id="lottie-title-boy"></div>
+      <div id="lottie-title-shark"></div>
+    </div>
+    <div id="title-menu">
+      <button class="mode-btn m-add" data-mode="add">➕ 加法</button>
+      <button class="mode-btn m-sub" data-mode="sub">➖ 減法</button>
+      <button class="mode-btn m-mul" data-mode="mul">✖️ 乘法</button>
+      <button class="mode-btn m-div" data-mode="div">➗ 除法</button>
+      <button class="mode-btn m-mix wide" data-mode="mix">🌟 加減混合挑戰</button>
+    </div>
+  </section>
+
+  <!-- ================= 遊戲畫面 ================= -->
+  <section id="screen-game" class="screen">
+    <div class="hill h-a"></div>
+    <div class="hill h-b"></div>
+    <header id="hud">
+      <button id="btn-home" class="icon-btn" aria-label="回首頁">🏠</button>
+      <div id="problem-display">
+        <span id="pd-a"></span><span id="pd-op"></span><span id="pd-b"></span><span id="pd-eq">=</span><span id="pd-q">?</span><span id="pd-rem"></span>
+      </div>
+      <div id="stars"><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i></div>
+      <button id="btn-sound" class="icon-btn" aria-label="音效開關">🔊</button>
+    </header>
+
+    <div id="board">
+      <div id="zone-tens" class="zone">
+        <div class="zone-label">十位・10元</div>
+        <div class="slots" id="slots-tens"></div>
+        <div class="zone-badge" id="badge-tens"></div>
+      </div>
+      <div id="zone-ones" class="zone">
+        <div class="zone-label">個位・1元</div>
+        <div class="slots" id="slots-ones"></div>
+        <div class="zone-badge" id="badge-ones"></div>
+      </div>
+    </div>
+
+    <div id="plates"></div>
+
+    <div id="mid-row">
+      <div id="guide">
+        <div id="lottie-guide"></div>
+        <div id="sweat">💧</div>
+        <div id="bubble"></div>
+      </div>
+      <div id="machine">
+        <img id="machine-shark" src="assets/deco_learning_shark.png" alt="換錢銀行的鯊魚行員">
+        <div id="machine-body">
+          <div id="machine-sign">換錢銀行</div>
+          <div id="machine-slot-in"></div>
+          <div id="machine-window">10 ⇄ 1</div>
+          <div id="machine-tray-out"></div>
+          <div class="machine-lights"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tray">
+      <div id="tray-label">要付的錢</div>
+      <div id="tray-slots"></div>
+    </div>
+
+    <div id="answers"></div>
+
+    <div id="group-ring"></div>
+    <div id="coin-layer"></div>
+    <div id="fx-layer">
+      <div id="counter"></div>
+      <div id="caption"></div>
+      <div id="hint-hand">👆</div>
+    </div>
+  </section>
+
+  <!-- ================= 結算畫面 ================= -->
+  <section id="screen-end" class="screen">
+    <div class="hill h-a"></div>
+    <div class="hill h-b"></div>
+    <div id="end-title">太棒了！</div>
+    <div id="end-stars"></div>
+    <div id="end-msg"></div>
+    <div id="end-chars">
+      <img id="end-deco-mammoth" src="assets/deco_news_mammoth.png" alt="">
+      <div id="lottie-end-boy"></div>
+    </div>
+    <div id="end-btns">
+      <button id="btn-again" class="big-btn">再玩一次 🔁</button>
+      <button id="btn-menu" class="big-btn alt">回首頁 🏠</button>
+    </div>
+  </section>
+
+  <img id="rocket-hedgehog" src="assets/deco_news_hedgehog.png" alt="">
+
+  <!-- 從太空站入口進來時的出發按鈕（同時解鎖手機音訊） -->
+  <div id="start-overlay">
+    <div id="start-card">
+      <img src="assets/deco_news_hedgehog.png" alt="">
+      <div id="start-mode-label"></div>
+      <button id="btn-start" class="big-btn">🚀 出發！</button>
+    </div>
+  </div>
+
+  <div id="rotate-overlay">
+    <div class="phone-icon">📱</div>
+    <div>請把手機轉直來玩喔！</div>
+  </div>
+</div>
+
+<script src="vendor/lottie.min.js"></script>
+<script src="js/characters.js?v=5"></script>
+<script src="js/sounds.js?v=5"></script>
+<script src="js/logic.js?v=5"></script>
+<script src="js/main.js?v=5"></script>
+</body>
+</html>

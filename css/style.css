@@ -64,8 +64,6 @@ body {
   overflow: hidden;
   background: linear-gradient(var(--sky1), var(--sky2) 55%, #f6fbff);
   box-shadow: 0 0 40px rgba(40, 80, 120, .25);
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
@@ -110,6 +108,9 @@ img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
 .screen {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
+  /* safe-area 要加在 .screen（in-flow 內容的容器）——
+     加在 #app 上對 position:absolute 的畫面無效，瀏海機 HUD 會被狀態列蓋住 */
+  padding-top: env(safe-area-inset-top);
   opacity: 0; visibility: hidden; transform: translateY(10px);
   transition: opacity .35s ease, transform .35s ease, visibility .35s;
   z-index: 1;
@@ -149,7 +150,18 @@ img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
 #lottie-title-boy      { width: clamp(84px, 24vw, 120px); margin-bottom: 6px; }
 #lottie-title-shark    { width: clamp(92px, 27vw, 132px); }
 
-#title-menu { display: flex; flex-direction: column; gap: clamp(10px, 1.8vh, 16px); width: min(76vw, 300px); }
+#title-menu {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: clamp(8px, 1.4vh, 14px);
+  width: min(80vw, 320px);
+}
+#title-menu .wide { grid-column: 1 / -1; }
+
+/* 回太空站 */
+#btn-space {
+  position: absolute; top: calc(10px + env(safe-area-inset-top)); left: 10px;
+  text-decoration: none; z-index: 5;
+}
 
 .mode-btn {
   font-family: var(--font);
@@ -162,6 +174,8 @@ img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
 .mode-btn:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--ink-soft); }
 .mode-btn.m-add { background: linear-gradient(#5f92dd, var(--blue)); }
 .mode-btn.m-sub { background: linear-gradient(#f78a7c, var(--coral)); }
+.mode-btn.m-mul { background: linear-gradient(#b79bf0, var(--purple)); }
+.mode-btn.m-div { background: linear-gradient(#7ccc8c, var(--green)); }
 .mode-btn.m-mix { background: linear-gradient(#ffc94d, var(--gold-dk)); }
 
 #title-deco-bird {
@@ -408,6 +422,59 @@ img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
 .tray-slot.t1  { width: var(--c1);  height: var(--c1);  font-size: calc(var(--c1) * .42); }
 .tray-slot.filled { border-style: solid; opacity: .35; }
 
+/* ---- 小朋友盤子（乘法收錢 / 除法分錢） ---- */
+#plates {
+  margin: 10px 10px 0; display: none;
+  gap: 8px; justify-content: center; align-items: stretch;
+  z-index: 2;
+}
+/* 注意：盤子列與盤子本身都不能用 transform 動畫——
+   硬幣以 getBoundingClientRect 對位，transform 中量到的座標是錯的 */
+#plates.show { display: flex; animation: fade-in .35s ease; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.plate {
+  flex: 1; max-width: 168px; position: relative;
+  background: #fff8ea; border: 3px solid var(--gold-dk); border-radius: 16px;
+  padding: 4px 4px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-height: calc(var(--c1) * 1.6 + 52px);
+  transition: transform .15s, box-shadow .15s;
+}
+.plate > img {
+  width: clamp(38px, 11.5vw, 54px); height: auto; flex: none;
+  margin-top: -18px;
+  filter: drop-shadow(0 2px 0 rgba(58,56,68,.2));
+}
+.plate-slots {
+  display: flex; flex-wrap: wrap; gap: 2px;
+  justify-content: center; align-content: flex-start;
+  min-height: calc(var(--c1) * 0.7);
+  width: 100%;
+}
+.pslot { border-radius: 50%; border: 2px dashed var(--ink-soft); opacity: .8; }
+.pslot.p10 { width: calc(var(--c10) * 0.62); height: calc(var(--c10) * 0.62); }
+.pslot.p1  { width: calc(var(--c1) * 0.62);  height: calc(var(--c1) * 0.62); }
+.plate-badge {
+  position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+  font-size: clamp(11px, 3vw, 13px); font-weight: 900; color: #7c5210;
+  background: var(--gold); border: 2px solid var(--ink); border-radius: 999px;
+  padding: 0 10px; white-space: nowrap;
+}
+.plate.pulse { animation: plate-pulse 1s ease-in-out infinite; cursor: pointer; }
+@keyframes plate-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(240,168,50,0); }
+  50%     { box-shadow: 0 0 0 7px rgba(240,168,50,.55); }
+}
+.plate.drag-over {
+  box-shadow: 0 0 0 5px rgba(88, 179, 104, .6);
+  border-color: var(--green-dk);
+}
+.plate.done { opacity: .75; }
+.plate.counting {
+  border-color: var(--blue-dk);
+  box-shadow: 0 0 0 5px rgba(74, 124, 201, .45);
+}
+
 /* ---- 答案列 ---- */
 #answers {
   display: flex; gap: 10px; justify-content: center; align-items: center;
@@ -507,6 +574,22 @@ img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
 .coin.locked { cursor: default; }
 .coin.spawn { animation: pop-in .35s cubic-bezier(.5,1.7,.5,1); }
 
+/* 手動點數：點過的錢外圈變綠做記號（點過不能再點） */
+.coin.counted {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6.5px var(--green),
+              0 3px 0 rgba(58, 56, 68, .3), inset 0 -3px 4px rgba(0,0,0,.12);
+  filter: saturate(.72) brightness(.97);
+  cursor: default;
+}
+
+/* 點錢時跳出來的面額數字（點 10 元跳「10」，不自動加總） */
+.tap-num {
+  position: absolute; z-index: 26; pointer-events: none;
+  font-size: clamp(24px, 6.6vw, 32px); font-weight: 900;
+  color: var(--green-dk);
+  text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 4px 0 rgba(58,56,68,.18);
+}
+
 /* 十枚一元的群組虛線框 */
 #group-ring {
   position: absolute; z-index: 5; pointer-events: none;
@@ -586,6 +669,35 @@ img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
 #lottie-end-boy { width: clamp(110px, 34vw, 170px); }
 #end-deco-mammoth { width: clamp(80px, 24vw, 120px); animation: hedgehog-peek 4s ease-in-out infinite; }
 #end-btns { display: flex; gap: 14px; }
+
+/* ---- 題目列的餘數 ---- */
+#pd-rem {
+  font-size: .62em; color: var(--purple); font-weight: 900;
+  align-self: flex-end; margin-bottom: 4px; white-space: nowrap;
+}
+#pd-rem.pulse { animation: q-pulse 1.2s ease-in-out infinite; }
+#pd-rem.solved { animation: pop-in .5s cubic-bezier(.5,1.8,.5,1); }
+
+/* ============================================================
+   出發覆蓋層（從太空站入口進來）
+   ============================================================ */
+#start-overlay {
+  position: absolute; inset: 0; z-index: 50;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(28, 43, 64, .55);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+#start-overlay.show { display: flex; }
+#start-card {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  background: var(--panel); border: 4px solid var(--ink); border-radius: 24px;
+  padding: 26px 34px; box-shadow: 0 8px 0 rgba(0,0,0,.25);
+  animation: pop-in .45s cubic-bezier(.4,1.6,.5,1);
+}
+#start-card img { width: clamp(70px, 20vw, 96px); }
+#start-mode-label {
+  font-size: clamp(22px, 6.4vw, 28px); font-weight: 900;
+}
 
 /* ============================================================
    轉直提示 / 載入
