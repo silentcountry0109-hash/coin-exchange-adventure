@@ -138,6 +138,31 @@
       }
     }
 
+    // 火車汽笛（湊十小火車）：兩聲上滑長音
+    whistle() {
+      this.tone({ freq: 620, type: 'triangle', dur: 0.28, vol: 0.4, slideTo: 740 });
+      this.tone({ freq: 620, type: 'triangle', dur: 0.55, vol: 0.42, when: 0.32, slideTo: 780 });
+      this.tone({ freq: 310, type: 'sine', dur: 0.55, vol: 0.2, when: 0.32, slideTo: 390 });
+    }
+
+    // 火車開動的節奏（嗚嗆嗚嗆）
+    chug(n) {
+      for (let i = 0; i < (n || 4); i++) {
+        this.noise({ dur: 0.12, vol: 0.14, when: i * 0.17, from: 200, to: 700, q: 1.5 });
+      }
+    }
+
+    // 時鐘滴答（時鐘星球，i 用來交替滴/答音高）
+    tick2(i) {
+      this.tone({ freq: i % 2 ? 900 : 1150, type: 'square', dur: 0.045, vol: 0.16 });
+    }
+
+    // 咕咕鐘報時（時針跳格）
+    cuckoo() {
+      this.tone({ freq: 784, type: 'sine', dur: 0.18, vol: 0.4 });
+      this.tone({ freq: 622, type: 'sine', dur: 0.26, vol: 0.4, when: 0.2 });
+    }
+
     // 全部完成的星星雨
     sparkleRain() {
       for (let i = 0; i < 10; i++) {

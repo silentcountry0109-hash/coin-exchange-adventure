@@ -1,0 +1,136 @@
+/* ============================================================
+   時鐘星球 — 疊在 style.css 之上的頁面樣式
+   大 SVG 時鐘、拖曳把手、晝夜背景（class 切換緩變）
+   ============================================================ */
+
+/* ---------------- 晝夜背景 ----------------
+   三層天空以 opacity 緩變（gradient 本身不能 transition） */
+#bg-sky .sky {
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+.sky-day   { background: linear-gradient(var(--sky1), var(--sky2) 55%, #f6fbff); }
+.sky-dusk  { background: linear-gradient(#6b5490, #ef8a5e 52%, #ffd9a0); }
+.sky-night { background: linear-gradient(#0d1a33, #1f3156 58%, #34496e); }
+#app.time-day   .sky-day,
+#app.time-dusk  .sky-dusk,
+#app.time-night .sky-night { opacity: 1; }
+
+/* 夜晚星點（JS 生成的小圓點，純裝飾） */
+.sky-night .nstar {
+  position: absolute; background: #fff; border-radius: 50%;
+  animation: nstar-twinkle 2.8s ease-in-out infinite;
+}
+@keyframes nstar-twinkle { 0%, 100% { opacity: .2; } 50% { opacity: .95; } }
+
+/* 雲與小山跟著時刻變情緒（不量測這些元素，transition filter/opacity 安全） */
+.cloud { transition: opacity 1.6s ease; }
+.hill  { transition: filter 1.6s ease; }
+#app.time-dusk  .cloud { opacity: .45; }
+#app.time-night .cloud { opacity: .14; }
+#app.time-dusk  .hill { filter: brightness(.82) saturate(.85) sepia(.18); }
+#app.time-night .hill { filter: brightness(.5) saturate(.65); }
+
+/* 夜晚時泡泡、題目列維持白底即可（對比足夠），標題字加亮 */
+#app.time-night #end-title { text-shadow: 3px 3px 0 #223, -3px -3px 0 #223, 3px -3px 0 #223, -3px 3px 0 #223; }
+
+/* ---------------- 版面 ---------------- */
+#screen-game { gap: clamp(4px, .8vh, 10px); }
+
+/* ---------------- 大時鐘 ---------------- */
+#clock-wrap {
+  position: relative;
+  width: min(80vw, 320px);
+  aspect-ratio: 1;
+  margin: clamp(6px, 1.4vh, 16px) auto 0;
+  flex: none;
+  z-index: 2;
+}
+#clock-svg { display: block; width: 100%; height: 100%; }
+
+#clock-svg .face      { fill: #fffdf4; stroke: var(--ink); stroke-width: 5; }
+#clock-svg .face-in   { fill: none; stroke: rgba(58, 56, 68, .12); stroke-width: 1.5; }
+#clock-svg .tick      { stroke: #9a97a6; stroke-width: 1.6; stroke-linecap: round; }
+#clock-svg .tick.major{ stroke: var(--ink); stroke-width: 3.4; }
+#clock-svg text {
+  font-family: var(--font); font-weight: 900; fill: var(--ink);
+  text-anchor: middle; dominant-baseline: central;
+  user-select: none; pointer-events: none;
+}
+#clock-svg .hand-h { stroke: var(--coral-dk); stroke-width: 10; stroke-linecap: round; }
+#clock-svg .hand-m { stroke: var(--blue-dk); stroke-width: 6.5; stroke-linecap: round; }
+#clock-svg .knob   { fill: var(--gold); stroke: var(--ink); stroke-width: 2.5; transition: opacity .3s; }
+#clock-svg .cap    { fill: var(--ink); }
+#clock-svg .cap-in { fill: #fffdf4; }
+
+/* 時針跳格的閃光（SVG 內部樣式動畫，安全） */
+#clock-svg .hg.flash .hand-h { animation: hh-flash 1.1s ease; }
+@keyframes hh-flash {
+  0%, 100% { stroke: var(--coral-dk); }
+  30%      { stroke: var(--gold-dk); }
+  60%      { stroke: var(--coral); }
+}
+
+/* 跳字錨點：鐘面上方（經過時間的「5 分、10 分…」由這裡冒出） */
+#tap-anchor {
+  position: absolute; left: 50%; top: 6%;
+  width: 2px; height: 2px; pointer-events: none;
+}
+
+/* ---------------- 拖曳把手 ----------------
+   透明命中圓 ≥48px，用 left/top 定位（嚴禁 transform 動畫：
+   拖曳計算與提示小手都靠 getBoundingClientRect 量它） */
+.handle {
+  position: absolute; left: 0; top: 0;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: transparent;
+  touch-action: none;
+  cursor: grab;
+  z-index: 8;
+  -webkit-tap-highlight-color: transparent;
+}
+.handle.grabbing { cursor: grabbing; }
+.handle.off { display: none; }
+
+/* ---------------- 中段：大象導師 ---------------- */
+#mid-row { flex: 1; min-height: 108px; }
+
+/* ---------------- 答案（文字時刻選項） ---------------- */
+.ans-btn.ans-time {
+  max-width: 152px;
+  font-size: clamp(15px, 4.4vw, 20px);
+  padding: clamp(10px, 1.6vh, 14px) 4px;
+  white-space: nowrap;
+}
+
+/* ---------------- 標題畫面的難度按鈕 ---------------- */
+.mode-btn.m-lv1 { background: linear-gradient(#5f92dd, var(--blue)); }
+.mode-btn.m-lv2 { background: linear-gradient(#7ccc8c, var(--green)); }
+.mode-btn.m-lv3 { background: linear-gradient(#b79bf0, var(--purple)); }
+
+/* ---------------- 特效層之下的星空/鐘不擋事件 ---------------- */
+#sprite-layer {
+  position: absolute; inset: 0; z-index: 6;
+  pointer-events: none; overflow: visible;
+}
+
+/* ---------------- 較矮的手機（375×667 也要放得下） ---------------- */
+@media (max-height: 700px) {
+  #clock-wrap { width: min(74vw, 286px); }
+  #mid-row { min-height: 96px; }
+  #lottie-guide { width: clamp(84px, 24vw, 116px); }
+}
+@media (max-height: 600px) {
+  #clock-wrap { width: min(64vw, 250px); }
+}
+
+/* 時鐘題目文字較長（例：9:15 + 20 分 = ?），
+   縮小字級並允許收縮，375px 窄幕才不會把 🔊 擠出畫面 */
+#problem-display {
+  min-width: 0;
+  font-size: clamp(15px, 4.4vw, 24px);
+  padding: 2px 6px;
+}
+#stars { flex: none; }

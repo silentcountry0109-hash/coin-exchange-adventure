@@ -6,65 +6,128 @@
 <meta name="theme-color" content="#0e1a2b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Danlu Kids Space">
 <title>Danlu Kids Space｜數學太空站</title>
+<meta property="og:title" content="Danlu Kids Space｜數學太空站">
+<meta property="og:description" content="大班到小二的數學遊戲樂園：換錢學進退位、小火車學湊十、撥時鐘學時間。免下載，手機直接玩！">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://silentcountry0109-hash.github.io/coin-exchange-adventure/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%233d6bb3' stroke='%23ffffff' stroke-width='5'/><circle cx='38' cy='36' r='12' fill='%238cc860' opacity='.8'/><circle cx='62' cy='58' r='9' fill='%238cc860' opacity='.7'/></svg>">
-<link rel="stylesheet" href="css/landing.css?v=2">
+<link rel="stylesheet" href="css/landing.css?v=3">
 </head>
 <body>
 <div id="space">
+  <div id="space-inner">
 
-  <div id="earth"></div>
+    <div id="earth"></div>
 
-  <!-- 漂浮的夥伴們 -->
-  <div id="astro-boy"></div>
-  <img id="astro-shark" src="assets/deco_learning_shark.png" alt="太空鯊魚">
-  <img id="astro-people" src="assets/deco_location_people.png" alt="漂浮的太空人">
-  <img id="rocket" src="assets/deco_news_hedgehog.png" alt="坐火箭的刺蝟">
+    <!-- 漂浮的夥伴們 -->
+    <div id="astro-boy"></div>
+    <img id="astro-shark" src="assets/deco_learning_shark.png" alt="太空鯊魚">
+    <img id="astro-people" src="assets/deco_location_people.png" alt="漂浮的太空人">
+    <img id="rocket" src="assets/deco_news_hedgehog.png" alt="坐火箭的刺蝟">
 
-  <header id="brand">
-    <h1>Danlu Kids Space</h1>
-    <div id="brand-dots"><i></i><i></i><i></i></div>
-    <div id="brand-sub">典陸小朋友・數學太空站</div>
-  </header>
+    <button id="btn-starmap" aria-label="我的星圖">🌟 我的星圖</button>
 
-  <nav id="planets" aria-label="選擇遊戲">
-    <a class="planet p-add" href="game.html?play=add"><span class="ball">➕</span><span class="tag">加法星球</span></a>
-    <a class="planet p-sub" href="game.html?play=sub"><span class="ball">➖</span><span class="tag">減法星球</span></a>
-    <a class="planet p-mul" href="game.html?play=mul"><span class="ball">✖️</span><span class="tag">乘法星球</span></a>
-    <a class="planet p-div" href="game.html?play=div"><span class="ball">➗</span><span class="tag">除法星球</span></a>
-    <a class="planet p-mix" href="game.html?play=mix"><span class="ball">🌟</span><span class="tag">混合銀河</span></a>
-  </nav>
+    <header id="brand">
+      <h1>Danlu Kids Space</h1>
+      <div id="brand-dots"><i></i><i></i><i></i></div>
+      <div id="brand-sub">典陸小朋友・數學太空站</div>
+    </header>
 
-  <div id="moon-ground">
-    <div class="crater cr1"></div>
-    <div class="crater cr2"></div>
-    <div class="crater cr3"></div>
-    <div class="crater cr4"></div>
+    <!-- 年段軌道 -->
+    <nav id="orbits" aria-label="選擇遊戲">
+      <section class="orbit g-k">
+        <div class="orbit-label">大班</div>
+        <div class="orbit-planets">
+          <a class="planet p-train" data-star="train:lv1" href="train.html?play=lv1">
+            <span class="ball">🚂</span><span class="tag">湊 5 小火車</span></a>
+          <a class="planet p-train" data-star="train:lv2" href="train.html?play=lv2">
+            <span class="ball">🚃</span><span class="tag">湊 10 小火車</span></a>
+        </div>
+      </section>
+
+      <section class="orbit g-1">
+        <div class="orbit-label">小一</div>
+        <div class="orbit-planets">
+          <a class="planet p-train" data-star="train:lv3" href="train.html?play=lv3">
+            <span class="ball">🚄</span><span class="tag">湊十法加法</span></a>
+          <a class="planet p-add" data-star="money:add" href="game.html?play=add">
+            <span class="ball">➕</span><span class="tag">加法星球</span></a>
+          <a class="planet p-sub" data-star="money:sub" href="game.html?play=sub">
+            <span class="ball">➖</span><span class="tag">減法星球</span></a>
+          <a class="planet p-clock" data-star="clock:lv1" href="clock.html?play=lv1">
+            <span class="ball">🕐</span><span class="tag">整點與半點</span></a>
+        </div>
+      </section>
+
+      <section class="orbit g-2">
+        <div class="orbit-label">小二</div>
+        <div class="orbit-planets">
+          <a class="planet p-mul" data-star="money:mul" href="game.html?play=mul">
+            <span class="ball">✖️</span><span class="tag">乘法星球</span></a>
+          <a class="planet p-div" data-star="money:div" href="game.html?play=div">
+            <span class="ball">➗</span><span class="tag">除法星球</span></a>
+          <a class="planet p-mix" data-star="money:mix" href="game.html?play=mix">
+            <span class="ball">🌟</span><span class="tag">混合銀河</span></a>
+          <a class="planet p-clock" data-star="clock:lv2" href="clock.html?play=lv2">
+            <span class="ball">🕝</span><span class="tag">幾點幾分</span></a>
+          <a class="planet p-clock" data-star="clock:lv3" href="clock.html?play=lv3">
+            <span class="ball">⏱️</span><span class="tag">經過時間</span></a>
+        </div>
+      </section>
+    </nav>
+
+    <!-- iOS 加入主畫面提示（JS 判斷顯示） -->
+    <div id="a2hs">
+      <span>📲 用 Safari 的「分享 → 加入主畫面」，全螢幕玩最順手！</span>
+      <button id="a2hs-close" aria-label="關閉">✕</button>
+    </div>
+
+    <div id="moon-ground">
+      <div class="crater cr1"></div>
+      <div class="crater cr2"></div>
+      <div class="crater cr3"></div>
+      <div class="crater cr4"></div>
+    </div>
+
+    <footer id="foot">DanluKids・大班到小二的數學遊戲樂園</footer>
   </div>
 
-  <footer id="foot">換錢大冒險・二位數的錢幣數學</footer>
+  <!-- 星圖 overlay -->
+  <div id="starmap-overlay">
+    <div id="starmap-card">
+      <h2>🌟 我的星圖</h2>
+      <div id="starmap-total"></div>
+      <div id="starmap-body"></div>
+      <button id="starmap-close">繼續探險！</button>
+    </div>
+  </div>
 </div>
 
 <script src="js/zoomguard.js?v=1"></script>
+<script src="js/starmap.js?v=1"></script>
 <script src="vendor/lottie.min.js"></script>
 <script src="js/characters.js?v=5"></script>
 <script>
 (function () {
   'use strict';
-  // 星空：兩層大小不同的星星，錯開閃爍
-  const space = document.getElementById('space');
-  for (let i = 0; i < 80; i++) {
+  const inner = document.getElementById('space-inner');
+
+  // 星空
+  for (let i = 0; i < 70; i++) {
     const s = document.createElement('div');
     s.className = 'star';
     const size = Math.random() < 0.82 ? (1 + Math.random() * 1.6) : (2.4 + Math.random() * 1.6);
     s.style.width = s.style.height = size.toFixed(1) + 'px';
     s.style.left = (Math.random() * 100).toFixed(2) + '%';
-    s.style.top = (Math.random() * 78).toFixed(2) + '%';
+    s.style.top = (Math.random() * 88).toFixed(2) + '%';
     s.style.animationDelay = (Math.random() * 3).toFixed(2) + 's';
     s.style.animationDuration = (2.2 + Math.random() * 2.6).toFixed(2) + 's';
-    space.appendChild(s);
+    inner.appendChild(s);
   }
-  // 太空男孩（Lottie 動畫，失敗時退回 GIF）
+
+  // 太空男孩（Lottie，失敗退回 GIF）
   try {
     if (window.lottie && window.LOTTIE_BOY) {
       lottie.loadAnimation({
@@ -77,6 +140,79 @@
     document.getElementById('astro-boy').innerHTML =
       '<img src="assets/boy.gif" style="width:100%" alt="太空男孩">';
   }
+
+  /* ---------------- 星球上的星星徽章 ---------------- */
+  document.querySelectorAll('.planet[data-star]').forEach((a) => {
+    const parts = a.dataset.star.split(':');
+    const best = window.Starmap.best(parts[0], parts[1]);
+    if (best > 0) {
+      const b = document.createElement('span');
+      b.className = 'stars-badge';
+      b.textContent = '⭐' + best;
+      a.appendChild(b);
+    }
+  });
+
+  /* ---------------- 星圖 overlay ---------------- */
+  // 星球註冊表：星圖依此列出（順序＝軌道順序）
+  const REGISTRY = [
+    { game: 'train', name: '🚂 湊十小火車', modes: [
+      ['lv1', '湊 5（大班）'], ['lv2', '湊 10（大班）'], ['lv3', '湊十法（小一）'],
+    ]},
+    { game: 'money', name: '🪙 換錢大冒險', modes: [
+      ['add', '加法'], ['sub', '減法'], ['mul', '乘法'], ['div', '除法'], ['mix', '混合'],
+    ]},
+    { game: 'clock', name: '🕐 時鐘星球', modes: [
+      ['lv1', '整點與半點'], ['lv2', '幾點幾分'], ['lv3', '經過時間'],
+    ]},
+  ];
+  const overlay = document.getElementById('starmap-overlay');
+  document.getElementById('btn-starmap').addEventListener('click', () => {
+    const body = document.getElementById('starmap-body');
+    const total = window.Starmap.total();
+    document.getElementById('starmap-total').textContent =
+      total > 0 ? ('已經收集了 ' + total + ' 顆星星！') : '';
+    body.innerHTML = '';
+    if (total === 0) {
+      body.innerHTML = '<div id="starmap-empty">還沒有星星～<br>去星球探險，每過一關就能點亮一顆！</div>';
+    } else {
+      for (const g of REGISTRY) {
+        const sec = document.createElement('div');
+        sec.className = 'sm-game';
+        let rows = '';
+        for (const m of g.modes) {
+          const best = window.Starmap.best(g.game, m[0]);
+          let stars = '';
+          for (let i = 0; i < 5; i++) {
+            stars += '<span class="' + (i < best ? 'on' : 'off') + '">⭐</span>';
+          }
+          rows += '<div class="sm-row"><span class="sm-mode">' + m[1] + '</span>'
+                + '<span class="sm-stars">' + stars + '</span></div>';
+        }
+        sec.innerHTML = '<div class="sm-game-name">' + g.name + '</div>'
+                      + '<div class="sm-rows">' + rows + '</div>';
+        body.appendChild(sec);
+      }
+    }
+    overlay.classList.add('show');
+  });
+  document.getElementById('starmap-close').addEventListener('click', () => overlay.classList.remove('show'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('show'); });
+
+  /* ---------------- iOS 加入主畫面提示 ---------------- */
+  try {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const standalone = window.navigator.standalone === true
+      || window.matchMedia('(display-mode: standalone)').matches;
+    const dismissed = localStorage.getItem('danlu-a2hs-dismissed') === '1';
+    if (isIOS && !standalone && !dismissed) {
+      document.getElementById('a2hs').classList.add('show');
+      document.getElementById('a2hs-close').addEventListener('click', () => {
+        document.getElementById('a2hs').classList.remove('show');
+        try { localStorage.setItem('danlu-a2hs-dismissed', '1'); } catch (err) {}
+      });
+    }
+  } catch (e) { /* 提示失敗不影響主功能 */ }
 })();
 </script>
 </body>

@@ -1470,6 +1470,8 @@
   async function showEnd() {
     Q = null;
     clearBoard();
+    // 星圖回報：答錯越少星越多（至少 1 顆），只在破紀錄時寫入
+    if (window.Starmap) window.Starmap.add('money', G.mode, Math.max(1, G.session.length - G.wrongTotal));
     $('end-stars').textContent = '⭐'.repeat(G.session.length);
     const msg = G.wrongTotal === 0
       ? '全部一次答對，你是換錢小達人！'
