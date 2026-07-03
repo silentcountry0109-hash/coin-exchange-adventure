@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#bde4f8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>湊十小火車｜湊 5・湊 10・湊十法</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='76' font-size='72' text-anchor='middle'>🚂</text></svg>">
+<title>九九乘法星球｜Danlu Kids Space</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23f5a623' stroke='%233a3844' stroke-width='6'/><text x='50' y='64' font-size='38' font-weight='bold' text-anchor='middle' fill='%23fff'>9×9</text></svg>">
 <link rel="stylesheet" href="css/style.css?v=6">
-<link rel="stylesheet" href="css/train.css?v=1">
+<link rel="stylesheet" href="css/mul99.css?v=2">
 </head>
 <body>
 <div id="app">
@@ -21,27 +21,20 @@
     <div class="cloud c-c"></div>
   </div>
 
-  <!-- ================= 標題畫面 ================= -->
+  <!-- ================= 標題畫面（選口訣段） ================= -->
   <section id="screen-title" class="screen active">
     <div class="hill h-a"></div>
     <div class="hill h-b"></div>
     <a id="btn-space" class="icon-btn" href="index.html" aria-label="回太空站">🌌</a>
-    <img id="title-deco-bird" src="assets/deco_bird.png" alt="">
-    <img id="title-deco-hedgehog" src="assets/deco_hedgehog.png" alt="">
-    <div id="logo" aria-label="湊十小火車">
-      <span>湊</span><span>十</span><span>小</span><span>火</span><span>車</span>
+    <div id="logo" aria-label="九九乘法">
+      <span>九</span><span>九</span><span>乘</span><span>法</span>
     </div>
-    <div id="title-sub">大象站長的湊十數學列車</div>
+    <div id="title-sub">點點卡・跳著數・背口訣</div>
     <div id="title-chars">
       <div id="lottie-title-elephant"></div>
-      <div id="lottie-title-boy"></div>
       <div id="lottie-title-shark"></div>
     </div>
-    <div id="title-menu">
-      <button class="mode-btn m-lv1" data-mode="lv1">🚂 湊 5 小火車</button>
-      <button class="mode-btn m-lv2" data-mode="lv2">🚃 湊 10 小火車</button>
-      <button class="mode-btn m-lv3" data-mode="lv3">🚄 湊十法加法</button>
-    </div>
+    <div id="seg-menu" aria-label="選擇口訣段"></div>
   </section>
 
   <!-- ================= 遊戲畫面 ================= -->
@@ -49,41 +42,39 @@
     <div class="hill h-a"></div>
     <div class="hill h-b"></div>
     <header id="hud">
-      <a id="btn-home" class="icon-btn" href="index.html" aria-label="回太空站">🏠</a>
+      <button id="btn-home" class="icon-btn" aria-label="回選單">🏠</button>
       <div id="problem-display">
-        <span id="pd-a"></span><span id="pd-op"></span><span id="pd-b"></span><span id="pd-eq">＝</span><span id="pd-q">?</span>
+        <span id="pd-a"></span><span id="pd-op"></span><span id="pd-b"></span><span id="pd-eq">=</span><span id="pd-q">?</span>
       </div>
       <div id="stars"><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i></div>
       <button id="btn-sound" class="icon-btn" aria-label="音效開關">🔊</button>
     </header>
 
-    <!-- 小火車（車廂＝座位格；平時嚴禁 transform，進出站動畫見 train.main.js） -->
-    <div id="train-area">
-      <div id="train">
-        <div id="loco">
-          <div class="wheels"><i></i><i></i></div>
-        </div>
-        <div id="carriage">
-          <div id="seats"></div>
-          <div class="wheels"><i></i><i></i><i></i></div>
-        </div>
-      </div>
-    </div>
-    <div id="track"></div>
-
-    <!-- 月台（等車的小動物） -->
-    <div id="platform">
-      <div id="platform-label">月台</div>
-      <div id="platform-badge"></div>
-      <div id="stands"></div>
+    <!-- 陣列區：一排一排的點點卡 -->
+    <div id="array-zone">
+      <div class="zone-label" id="array-label">點點卡</div>
+      <div id="row-slots"></div>
     </div>
 
-    <!-- 大象站長 -->
+    <!-- 跳數序列（填空題用） -->
+    <div id="seq-row"></div>
+
+    <!-- 月台：待拖曳的下一排 -->
+    <div id="tray99">
+      <div id="tray99-label">下一排</div>
+      <div id="tray99-slot"></div>
+      <div id="tray99-badge"></div>
+    </div>
+
     <div id="mid-row">
       <div id="guide">
         <div id="lottie-guide"></div>
         <div id="sweat">💧</div>
         <div id="bubble"></div>
+      </div>
+      <div id="stamp-pad">
+        <div id="stamp-pad-label">口訣印章</div>
+        <div id="stamp-list"></div>
       </div>
     </div>
 
@@ -110,18 +101,11 @@
     </div>
     <div id="end-btns">
       <button id="btn-again" class="big-btn">再玩一次 🔁</button>
-      <button id="btn-menu" class="big-btn alt">回太空站 🌌</button>
+      <button id="btn-menu" class="big-btn alt">換一段 📖</button>
     </div>
   </section>
 
-  <!-- 從太空站入口進來時的出發按鈕（同時解鎖手機音訊） -->
-  <div id="start-overlay">
-    <div id="start-card">
-      <img src="assets/deco_news_hedgehog.png" alt="">
-      <div id="start-mode-label"></div>
-      <button id="btn-start" class="big-btn">🚂 出發！</button>
-    </div>
-  </div>
+  <img id="rocket-hedgehog" src="assets/deco_news_hedgehog.png" alt="">
 
   <div id="rotate-overlay">
     <div class="phone-icon">📱</div>
@@ -133,9 +117,9 @@
 <script src="js/starmap.js?v=1"></script>
 <script src="vendor/lottie.min.js"></script>
 <script src="js/characters.js?v=5"></script>
-<script src="js/sounds.js?v=6"></script>
+<script src="js/sounds.js?v=7"></script>
 <script src="js/engine.js?v=2"></script>
-<script src="js/train.logic.js?v=1"></script>
-<script src="js/train.main.js?v=1"></script>
+<script src="js/mul99.logic.js?v=1"></script>
+<script src="js/mul99.main.js?v=2"></script>
 </body>
 </html>

@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://silentcountry0109-hash.github.io/coin-exchange-adventure/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%233d6bb3' stroke='%23ffffff' stroke-width='5'/><circle cx='38' cy='36' r='12' fill='%238cc860' opacity='.8'/><circle cx='62' cy='58' r='9' fill='%238cc860' opacity='.7'/></svg>">
-<link rel="stylesheet" href="css/landing.css?v=3">
+<link rel="stylesheet" href="css/landing.css?v=4">
 </head>
 <body>
 <div id="space">
@@ -68,6 +68,8 @@
             <span class="ball">✖️</span><span class="tag">乘法星球</span></a>
           <a class="planet p-div" data-star="money:div" href="game.html?play=div">
             <span class="ball">➗</span><span class="tag">除法星球</span></a>
+          <a class="planet p-99" data-star="mul99:*" href="mul99.html">
+            <span class="ball">9×9</span><span class="tag">九九乘法</span></a>
           <a class="planet p-mix" data-star="money:mix" href="game.html?play=mix">
             <span class="ball">🌟</span><span class="tag">混合銀河</span></a>
           <a class="planet p-clock" data-star="clock:lv2" href="clock.html?play=lv2">
@@ -141,10 +143,13 @@
       '<img src="assets/boy.gif" style="width:100%" alt="太空男孩">';
   }
 
-  /* ---------------- 星球上的星星徽章 ---------------- */
+  /* ---------------- 星球上的星星徽章 ----------------
+     data-star="game:mode" 顯示該模式最佳星數；"game:*" 顯示整個遊戲的總星數 */
   document.querySelectorAll('.planet[data-star]').forEach((a) => {
     const parts = a.dataset.star.split(':');
-    const best = window.Starmap.best(parts[0], parts[1]);
+    const best = parts[1] === '*'
+      ? window.Starmap.gameTotal(parts[0])
+      : window.Starmap.best(parts[0], parts[1]);
     if (best > 0) {
       const b = document.createElement('span');
       b.className = 'stars-badge';
@@ -164,6 +169,10 @@
     ]},
     { game: 'clock', name: '🕐 時鐘星球', modes: [
       ['lv1', '整點與半點'], ['lv2', '幾點幾分'], ['lv3', '經過時間'],
+    ]},
+    { game: 'mul99', name: '✖️ 九九乘法', modes: [
+      ['d2', '2 的口訣'], ['d3', '3 的口訣'], ['d4', '4 的口訣'], ['d5', '5 的口訣'],
+      ['d6', '6 的口訣'], ['d7', '7 的口訣'], ['d8', '8 的口訣'], ['d9', '9 的口訣'],
     ]},
   ];
   const overlay = document.getElementById('starmap-overlay');

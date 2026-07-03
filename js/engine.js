@@ -198,9 +198,11 @@
       }
       get size() { return this.el.offsetWidth || 40; }
       apply() {
-        const s = this.size / 2;
+        // 以寬高各自的一半置中：非正方形（如九九的整排點點卡）也能正確對位
+        const sx = (this.el.offsetWidth || 40) / 2;
+        const sy = (this.el.offsetHeight || this.el.offsetWidth || 40) / 2;
         this.el.style.transform =
-          'translate3d(' + (this.x - s) + 'px,' + (this.y - s) + 'px,0) scale(' + this.scale + ')';
+          'translate3d(' + (this.x - sx) + 'px,' + (this.y - sy) + 'px,0) scale(' + this.scale + ')';
       }
       placeAt(x, y, opts) {
         opts = opts || {};

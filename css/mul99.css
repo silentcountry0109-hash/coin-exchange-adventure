@@ -1,0 +1,198 @@
+/* ============================================================
+   九九乘法星球 — 陣列點點卡 / 跳數 / 口訣印章
+   疊在 style.css 的設計系統之上
+   ============================================================ */
+
+/* ---- 標題畫面：口訣段選單（2~9） ---- */
+#logo span:nth-child(1) { background: var(--gold-dk); }
+#logo span:nth-child(2) { background: var(--coral); }
+#logo span:nth-child(3) { background: var(--blue); }
+#logo span:nth-child(4) { background: var(--green); }
+
+#seg-menu {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: clamp(8px, 1.6vh, 14px);
+  width: min(86vw, 360px);
+}
+.seg-btn {
+  position: relative;
+  font-family: var(--font); font-weight: 900; color: #fff;
+  font-size: clamp(20px, 6vw, 26px);
+  padding: clamp(10px, 1.8vh, 16px) 0 clamp(16px, 2.4vh, 22px);
+  border: 3.5px solid var(--ink); border-radius: 18px;
+  box-shadow: 0 5px 0 var(--ink-soft); cursor: pointer;
+  transition: transform .1s, box-shadow .1s;
+  touch-action: manipulation;
+}
+.seg-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink-soft); }
+.seg-btn b { display: block; font-size: clamp(24px, 7.4vw, 32px); line-height: 1.05; }
+.seg-btn small { display: block; font-size: clamp(11px, 3.2vw, 14px); font-weight: 700; opacity: .95; }
+.seg-btn.c0 { background: linear-gradient(#5f92dd, var(--blue)); }
+.seg-btn.c1 { background: linear-gradient(#f78a7c, var(--coral)); }
+.seg-btn.c2 { background: linear-gradient(#7ccc8c, var(--green)); }
+.seg-btn.c3 { background: linear-gradient(#ffc94d, var(--gold-dk)); }
+.seg-btn .seg-stars {
+  position: absolute; left: 0; right: 0; bottom: 4px;
+  font-size: 10px; letter-spacing: 1px;
+}
+
+/* ---- Sprite 層（點點卡的座標系） ---- */
+#sprite-layer {
+  position: absolute; inset: 0; z-index: 6;
+  pointer-events: none; overflow: visible;
+}
+#sprite-layer .sprite { pointer-events: auto; }
+
+/* ---- 陣列區 ---- */
+#array-zone {
+  position: relative; margin: 14px 10px 0;
+  flex: none; /* 不參與 flex 收縮：被壓縮時排位會溢出框外（sprite 對位錯亂） */
+  background: var(--tens-bg); border: 3px solid var(--tens-bd); border-radius: 18px;
+  padding: clamp(14px, 2vh, 18px) 8px 10px;
+  min-height: calc(var(--row-h, 34px) * 3 + 40px);
+  z-index: 2;
+}
+#array-zone .zone-label { background: var(--tens-bd); }
+#array-zone.drag-over {
+  box-shadow: 0 0 0 5px rgba(91, 139, 212, .5);
+}
+#row-slots {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px;
+}
+.row-slot {
+  width: var(--strip-w, 240px); height: var(--row-h, 34px);
+  border: 2.5px dashed var(--ink-soft); border-radius: 999px;
+  opacity: .6;
+}
+.row-slot.taken { border-style: solid; opacity: .3; }
+
+/* 一排點點卡（sprite） */
+.sprite.rowstrip {
+  position: absolute; left: 0; top: 0;
+  width: var(--strip-w, 240px); height: var(--row-h, 34px);
+  display: flex; align-items: center; justify-content: space-evenly;
+  background: #fff; border: 3px solid var(--ink); border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(58, 56, 68, .25);
+  pointer-events: auto; touch-action: none; cursor: grab;
+  will-change: transform;
+}
+.sprite.rowstrip .dot {
+  width: calc(var(--row-h, 34px) * .62); height: calc(var(--row-h, 34px) * .62);
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 26%, #ffd97a, var(--gold-dk) 75%);
+  border: 2.5px solid var(--ink);
+  pointer-events: none;
+}
+.sprite.rowstrip.dragging {
+  cursor: grabbing; z-index: 60;
+  filter: brightness(1.06) drop-shadow(0 8px 10px rgba(0,0,0,.25));
+}
+.sprite.rowstrip.locked { cursor: default; }
+/* 跳數點過的記號：整排變綠框（比照 .coin.counted，不用 transform） */
+.sprite.rowstrip.counted {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6.5px var(--green), 0 3px 0 rgba(58,56,68,.25);
+  filter: saturate(.8);
+}
+.sprite.rowstrip.next-tap {
+  animation: strip-glow 1s ease-in-out infinite alternate;
+}
+@keyframes strip-glow {
+  from { box-shadow: 0 0 0 3px rgba(255,209,102,.0), 0 3px 0 rgba(58,56,68,.25); }
+  to   { box-shadow: 0 0 0 6px rgba(255,209,102,.9), 0 3px 0 rgba(58,56,68,.25); }
+}
+
+/* ---- 跳數序列（填空題） ---- */
+#seq-row {
+  display: none; justify-content: center; align-items: center;
+  gap: clamp(4px, 1.6vw, 10px);
+  margin: 10px 8px 0; z-index: 2; flex-wrap: nowrap;
+}
+#seq-row.show { display: flex; animation: pop-in .35s cubic-bezier(.5,1.5,.5,1); }
+.seq-pill {
+  min-width: clamp(38px, 11vw, 52px); text-align: center;
+  font-size: clamp(17px, 5vw, 22px); font-weight: 900; color: var(--blue-dk);
+  background: #fff; border: 3px solid var(--tens-bd); border-radius: 12px;
+  padding: 6px 4px;
+}
+.seq-pill.miss {
+  color: var(--coral-dk); border-color: var(--coral);
+  border-style: dashed; background: #fff4f1;
+  animation: q-pulse 1.2s ease-in-out infinite;
+}
+.seq-pill.solved {
+  color: #fff; background: var(--green); border-color: var(--green-dk);
+  animation: pop-in .5s cubic-bezier(.5,1.8,.5,1);
+}
+
+/* ---- 月台：下一排 ---- */
+#tray99 {
+  position: relative; margin: 12px 10px 0;
+  background: var(--ones-bg); border: 3px solid var(--ones-bd); border-radius: 18px;
+  padding: clamp(14px, 2vh, 18px) 8px 8px;
+  min-height: calc(var(--row-h, 34px) + 34px);
+  display: none; z-index: 2;
+}
+#tray99.show { display: block; }
+#tray99-label {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  font-size: clamp(12px, 3.4vw, 15px); font-weight: 900; color: #fff;
+  background: var(--gold-dk); padding: 2px 14px; border-radius: 999px;
+  border: 2.5px solid var(--ink); white-space: nowrap; z-index: 3;
+}
+#tray99-slot {
+  width: var(--strip-w, 240px); height: var(--row-h, 34px);
+  margin: 0 auto;
+  border: 2.5px dashed rgba(240, 168, 50, .8); border-radius: 999px;
+  background: rgba(255,255,255,.5);
+}
+#tray99-badge {
+  position: absolute; top: -13px; right: 8px;
+  font-size: clamp(11px, 3vw, 13px); font-weight: 900; color: #7c5210;
+  background: var(--gold); border: 2px solid var(--ink); border-radius: 999px;
+  padding: 1px 10px; z-index: 3;
+}
+
+/* ---- 口訣印章收集 ---- */
+#stamp-pad {
+  flex: none; width: clamp(150px, 44vw, 210px);
+  position: relative; align-self: flex-end;
+  height: clamp(110px, 19vh, 168px);
+  overflow: hidden;
+  background: #fff8ea; border: 3px solid var(--gold-dk); border-radius: 16px;
+  margin-bottom: 4px; padding: 18px 6px 6px;
+}
+#stamp-pad-label {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  font-size: clamp(12px, 3.4vw, 14px); font-weight: 900; color: #7c5210;
+  background: var(--gold); padding: 1px 12px; border-radius: 999px;
+  border: 2.5px solid var(--ink); white-space: nowrap;
+}
+#stamp-list {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  justify-content: center; align-content: flex-start;
+}
+.stamp {
+  font-size: clamp(11px, 3.1vw, 13px); font-weight: 900; color: var(--coral-dk);
+  border: 2.5px solid var(--coral); border-radius: 10px;
+  padding: 2px 7px; background: #fff;
+  transform: rotate(-4deg);
+  animation: stamp-in .45s cubic-bezier(.3,1.8,.5,1);
+}
+.stamp:nth-child(2n) { transform: rotate(3deg); }
+@keyframes stamp-in {
+  0% { transform: scale(2.2) rotate(-14deg); opacity: 0; }
+  60% { transform: scale(.92) rotate(-2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-4deg); }
+}
+
+/* 口訣大字（答對時的中文口訣） */
+#caption.chant { letter-spacing: 4px; }
+
+/* 矮螢幕 */
+@media (max-height: 640px) {
+  #array-zone { min-height: calc(var(--row-h, 30px) * 3 + 30px); }
+  #stamp-pad { width: clamp(140px, 40vw, 180px); height: clamp(90px, 16vh, 130px); }
+  #mid-row { min-height: 92px; }
+  #tray99 { padding-top: 12px; min-height: calc(var(--row-h, 30px) + 24px); }
+}

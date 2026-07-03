@@ -238,6 +238,12 @@ img { -webkit-user-drag: none; user-drag: none; }
 .p-mix .ball   { background: radial-gradient(circle at 34% 28%, #ffd97a, #e09a20 75%); }
 .p-train .ball { background: radial-gradient(circle at 34% 28%, #7ee0d6, #1f9e90 75%); }
 .p-clock .ball { background: radial-gradient(circle at 34% 28%, #ffb3c7, #d4557e 75%); }
+.p-99 .ball {
+  background: radial-gradient(circle at 34% 28%, #ffb46e, #d97014 75%);
+  font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: #fff;
+  font-family: var(--font-round); letter-spacing: 1px;
+  text-shadow: 0 2px 0 rgba(58, 56, 68, .4);
+}
 /* 乘法星球的土星環 */
 .p-mul .ball::before {
   content: ""; position: absolute; left: -22%; right: -22%; top: 42%;

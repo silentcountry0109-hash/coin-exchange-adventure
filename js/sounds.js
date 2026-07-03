@@ -163,6 +163,13 @@
       this.tone({ freq: 622, type: 'sine', dur: 0.26, vol: 0.4, when: 0.2 });
     }
 
+    // 蓋印章（九九口訣）：厚實的「咚」＋亮片
+    stamp() {
+      this.tone({ freq: 190, type: 'sine', dur: 0.16, vol: 0.5, slideTo: 120 });
+      this.noise({ dur: 0.09, vol: 0.12, from: 900, to: 400, q: 1 });
+      this.tone({ freq: 1560, type: 'sine', dur: 0.2, vol: 0.18, when: 0.1 });
+    }
+
     // 全部完成的星星雨
     sparkleRain() {
       for (let i = 0; i < 10; i++) {
