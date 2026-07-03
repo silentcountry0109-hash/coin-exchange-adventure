@@ -91,6 +91,7 @@
     trayBadge.textContent = '';
     answersEl.innerHTML = '';
     arrayZone.classList.remove('drag-over');
+    arrayZone.style.display = ''; // 背誦題會隱藏陣列區，換題時還原
     E.counterHide();
     E.hideHint(false);
   }
@@ -303,7 +304,9 @@
     pd.q.classList.add('pulse');
     const options = ML.makeOptions(p, rng);
     answersEl.innerHTML = '';
-    E.say(p.type === 'gap' ? '被雲遮住的是多少呢？' : '一共有多少個點點呢？想一想口訣！');
+    E.say(p.type === 'gap' ? '被雲遮住的是多少呢？'
+      : p.type === 'recite' ? '想一想口訣，選出答案！'
+      : '一共有多少個點點呢？想一想口訣！');
 
     await new Promise((resolve, reject) => {
       E.run.waiters.push({ reject });
@@ -344,7 +347,15 @@
                   await E.sleep(420);
                 }
               } else {
-                await skipCount(); // 重新照順序點一次
+                if (p.type === 'recite' && Q.rows.length === 0) {
+                  // 背誦忘了：把點點卡排出來當救援，跳著數找答案
+                  E.say('沒關係！點點卡來幫忙！');
+                  arrayZone.style.display = '';
+                  setSizes(p.a, p.b);
+                  buildRowSlots(p.b);
+                  await dealRows(p);
+                }
+                await skipCount(); // 照順序點一次
                 Q.phase = 'answer';
               }
               E.say('現在知道了嗎？');
@@ -425,9 +436,8 @@
     addStamp(p);
   }
 
-  async function runQuickQuestion(p) {
-    arrayLabel.textContent = '每排 ' + p.a + ' 個';
-    await E.sayWait(p.a + ' 乘以 ' + p.b + ' 是多少？看點點卡想口訣！', 3000);
+  // 自動把 b 排點點卡快速排上陣列（快答／背誦求救共用）
+  async function dealRows(p) {
     Q.phase = 'dealing';
     for (let i = 0; i < p.b; i++) {
       if (E.run.cancelled) throw new E.CancelError();
@@ -444,6 +454,24 @@
       await E.sleep(140);
     }
     await E.sleep(300);
+  }
+
+  async function runQuickQuestion(p) {
+    arrayLabel.textContent = '每排 ' + p.a + ' 個';
+    await E.sayWait(p.a + ' 乘以 ' + p.b + ' 是多少？看點點卡想口訣！', 3000);
+    await dealRows(p);
+    await askAnswer(p);
+    sayChant(p);
+    await E.sleep(1400);
+    await E.speechDrain(lastChant);
+    addStamp(p);
+  }
+
+  // 混合挑戰：直接考背誦（不排陣列）；答錯時 askAnswer 會排出點點卡當救援
+  async function runReciteQuestion(p) {
+    arrayZone.style.display = 'none';
+    trayEl.classList.remove('show');
+    await E.sayWait('考考你！' + p.a + ' 乘以 ' + p.b + ' 是多少？', 2800);
     await askAnswer(p);
     sayChant(p);
     await E.sleep(1400);
@@ -467,10 +495,12 @@
 
   async function runSession(seg) {
     E.newRun();
-    G.seg = seg;
+    G.seg = seg; // 數字（段）或 'mix'（混合背誦挑戰）
     G.qIndex = 0; G.wrongTotal = 0;
     rng = new ML.Rng(E.URL_SEED != null ? E.URL_SEED : undefined);
-    G.session = ML.generateSession(seg, { rng });
+    G.session = seg === 'mix'
+      ? ML.generateMixSession({ rng })
+      : ML.generateSession(seg, { rng });
     stampList.innerHTML = '';
     for (const el of starsEl.children) el.classList.remove('lit');
     E.showScreen('game');
@@ -482,11 +512,12 @@
         Q = newQuestionState(p);
         clearStage();
         setSizes(p.a, p.type === 'gap' ? p.count : p.b);
-        if (p.type !== 'gap') buildRowSlots(p.b);
+        if (p.type !== 'gap' && p.type !== 'recite') buildRowSlots(p.b);
         setProblemDisplay(p);
         await E.sleep(500);
         if (p.type === 'build') await runBuildQuestion(p);
         else if (p.type === 'gap') await runGapQuestion(p);
+        else if (p.type === 'recite') await runReciteQuestion(p);
         else await runQuickQuestion(p);
 
         Q.phase = 'done';
@@ -516,11 +547,13 @@
   async function showEnd() {
     Q = null;
     clearStage();
-    if (window.Starmap) window.Starmap.add('mul99', 'd' + G.seg, Math.max(1, G.session.length - G.wrongTotal));
+    const starKey = G.seg === 'mix' ? 'mix' : 'd' + G.seg;
+    if (window.Starmap) window.Starmap.add('mul99', starKey, Math.max(1, G.session.length - G.wrongTotal));
     $('end-stars').textContent = '⭐'.repeat(G.session.length);
+    const segName = G.seg === 'mix' ? '混合' : G.seg + ' 的';
     const msg = G.wrongTotal === 0
-      ? G.seg + ' 的口訣全部答對，蓋滿印章！'
-      : '再玩一次，把 ' + G.seg + ' 的口訣背得更熟！';
+      ? segName + '口訣全部答對，蓋滿印章！'
+      : '再玩一次，把' + segName + '口訣背得更熟！';
     $('end-msg').textContent = msg;
     E.showScreen('end');
     sfx.sparkleRain();
@@ -549,6 +582,17 @@
       });
       menu.appendChild(b);
     });
+    // 混合挑戰：2~9 段各抽一題，直接考背誦
+    const mixBest = window.Starmap ? window.Starmap.best('mul99', 'mix') : 0;
+    const mb = document.createElement('button');
+    mb.className = 'seg-btn wide';
+    mb.innerHTML = '⚡ 混合挑戰'
+      + '<span class="seg-stars">' + (mixBest > 0 ? '⭐' + mixBest : '　') + '</span>';
+    mb.addEventListener('click', () => {
+      sfx.unlock(); E.speech.prime(); sfx.tap();
+      runSession('mix');
+    });
+    menu.appendChild(mb);
   }
 
   /* ---------------- 事件綁定 ---------------- */
@@ -645,10 +689,10 @@
     buildSegMenu();
     bindUI();
     E.playScreenChars('title');
-    // 測試：?mode=d3&seed=1&fast=1 直接開跑（關語音）
-    if (E.URL_MODE && /^d[2-9]$/.test(E.URL_MODE)) {
+    // 測試：?mode=d3|mix&seed=1&fast=1 直接開跑（關語音）
+    if (E.URL_MODE && /^(d[2-9]|mix)$/.test(E.URL_MODE)) {
       E.speech.on = false;
-      runSession(Number(E.URL_MODE.slice(1)));
+      runSession(E.URL_MODE === 'mix' ? 'mix' : Number(E.URL_MODE.slice(1)));
     } else if (E.URL_PLAY && /^d[2-9]$/.test(E.URL_PLAY)) {
       // 從入口直連某一段：反白該按鈕提示（點擊才有手勢能開語音）
       const d = Number(E.URL_PLAY.slice(1));

@@ -35,6 +35,12 @@
   position: absolute; left: 0; right: 0; bottom: 4px;
   font-size: 10px; letter-spacing: 1px;
 }
+.seg-btn.wide {
+  grid-column: 1 / -1;
+  font-size: clamp(18px, 5.2vw, 23px);
+  padding: clamp(8px, 1.4vh, 12px) 0 clamp(14px, 2vh, 18px);
+  background: linear-gradient(#b79bf0, var(--purple));
+}
 
 /* ---- Sprite 層（點點卡的座標系） ---- */
 #sprite-layer {
@@ -158,10 +164,11 @@
   flex: none; width: clamp(150px, 44vw, 210px);
   position: relative; align-self: flex-end;
   height: clamp(110px, 19vh, 168px);
-  overflow: hidden;
+  /* overflow 只能加在內層清單：加在面板會把突出上緣的「口訣印章」標籤剪掉 */
   background: #fff8ea; border: 3px solid var(--gold-dk); border-radius: 16px;
   margin-bottom: 4px; padding: 18px 6px 6px;
 }
+#stamp-list { height: 100%; overflow: hidden; }
 #stamp-pad-label {
   position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
   font-size: clamp(12px, 3.4vw, 14px); font-weight: 900; color: #7c5210;

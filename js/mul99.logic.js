@@ -89,6 +89,17 @@
     return [p1, p2, p3, p4, p5];
   }
 
+  // 混合挑戰：5 段各出一題（段落洗牌保證多樣），直接考背誦
+  function generateMixSession(opts) {
+    opts = opts || {};
+    const rng = opts.rng || new Rng(opts.seed);
+    const segs = rng.shuffle(SEGMENTS.slice()).slice(0, 5);
+    return segs.map((d) => {
+      const b = rng.int(2, 9);
+      return { type: 'recite', a: d, b, answer: d * b };
+    });
+  }
+
   // 三個選項：干擾項首選「背錯一句」（±d，相鄰倍數），再補 ±1
   function makeOptions(p, rng) {
     rng = rng || new Rng();
@@ -112,7 +123,7 @@
 
   return {
     Rng, SEGMENTS, zhNum, chant,
-    genBuild, genGap, genQuick, generateSession,
+    genBuild, genGap, genQuick, generateSession, generateMixSession,
     makeOptions, skipSequence,
   };
 });
