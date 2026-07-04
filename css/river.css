@@ -1,0 +1,152 @@
+/* ============================================================
+   小鳥過河 — 等差數列（數線上的石頭，小鳥等距跳過河）
+   疊在 style.css 設計系統之上
+   ============================================================ */
+
+/* 標題 logo 配色 */
+#logo span:nth-child(1) { background: var(--green); }
+#logo span:nth-child(2) { background: var(--blue); }
+#logo span:nth-child(3) { background: var(--gold-dk); }
+#logo span:nth-child(4) { background: var(--coral); }
+#title-bird { width: clamp(70px, 20vw, 96px); align-self: flex-end; margin: 0 -6px 6px; }
+
+.mode-btn.lv1 { background: linear-gradient(#7ccc8c, var(--green)); }
+.mode-btn.lv2 { background: linear-gradient(#5f92dd, var(--blue)); }
+.mode-btn.lv3 { background: linear-gradient(#b79bf0, var(--purple)); }
+
+#pd-label { font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: var(--ink); }
+
+/* ---- 方向旗 ---- */
+#dir-banner {
+  margin: 8px auto 0; z-index: 3;
+  display: none; align-items: center; gap: 6px;
+  font-size: clamp(13px, 3.8vw, 16px); font-weight: 900;
+  padding: 3px 16px; border-radius: 999px;
+  border: 3px solid var(--ink); color: #fff;
+  box-shadow: 0 3px 0 var(--ink-soft);
+  animation: pop-in .4s cubic-bezier(.5,1.6,.5,1);
+}
+#dir-banner.show { display: inline-flex; }
+#dir-banner.up { background: linear-gradient(#7ccc8c, var(--green-dk)); }
+#dir-banner.down { background: linear-gradient(#6fa3e8, var(--blue-dk)); }
+
+/* ---- 河與石頭 ---- */
+#pond {
+  position: relative; margin: 10px 8px 0;
+  height: clamp(220px, 40vh, 340px);
+  border-radius: 20px; overflow: hidden;
+  border: 3.5px solid var(--ink);
+  box-shadow: 0 4px 0 var(--ink-soft);
+  z-index: 2;
+}
+#water {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, #bfe9ff 0%, #8fd0f5 45%, #63b4e6 100%);
+}
+/* 水波紋 */
+#water::before, #water::after {
+  content: ""; position: absolute; left: -20%; right: -20%;
+  height: 40%; border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,.35), transparent 60%);
+  animation: ripple 6s ease-in-out infinite;
+}
+#water::before { top: 30%; }
+#water::after { top: 62%; animation-delay: -3s; opacity: .7; }
+@keyframes ripple {
+  0%,100% { transform: translateX(-4%) scaleY(1); }
+  50% { transform: translateX(4%) scaleY(1.15); }
+}
+
+#stones { position: absolute; inset: 0; }
+#steps-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+
+/* 一顆石頭（含荷葉底＋數字牌） */
+.stone {
+  position: absolute; transform: translate(-50%, -50%);
+  width: var(--stone-w, 52px); height: var(--stone-w, 52px);
+  display: grid; place-items: center;
+}
+.stone .pad {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #8fd07a, #4e9a55 72%, #3c7d44 100%);
+  border: 3px solid var(--ink);
+  box-shadow: 0 4px 0 rgba(30, 60, 40, .35);
+}
+.stone .pad::after { /* 荷葉切口 */
+  content: ""; position: absolute; right: 14%; top: 46%;
+  width: 42%; height: 3px; background: rgba(30,60,40,.4); border-radius: 2px;
+  transform: rotate(-18deg);
+}
+.stone .num {
+  position: relative; z-index: 1;
+  font-family: var(--font); font-weight: 900;
+  font-size: calc(var(--stone-w, 52px) * .42); color: #fff;
+  text-shadow: 0 2px 0 rgba(30,60,40,.55);
+}
+.stone.missing .pad {
+  background: radial-gradient(circle at 38% 32%, #d7e6ef, #a9c2d4 72%, #8aa8bd 100%);
+  border-style: dashed;
+}
+.stone.missing .num { color: var(--coral-dk); text-shadow: none; }
+.stone.missing.ask .pad { animation: stone-wait 1s ease-in-out infinite; }
+@keyframes stone-wait {
+  0%,100% { box-shadow: 0 4px 0 rgba(30,60,40,.35), 0 0 0 0 rgba(239,106,90,0); }
+  50% { box-shadow: 0 4px 0 rgba(30,60,40,.35), 0 0 0 7px rgba(239,106,90,.45); }
+}
+.stone.revealed .num { animation: pop-in .5s cubic-bezier(.5,1.8,.5,1); }
+.stone.goal .pad {
+  background: radial-gradient(circle at 38% 32%, #ffe08a, var(--gold-dk) 72%, #cf8a12 100%);
+}
+.stone .flag {
+  position: absolute; top: -60%; left: 50%; transform: translateX(-50%);
+  font-size: calc(var(--stone-w, 52px) * .5); filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
+}
+
+/* 石頭之間的「+3 / −3」公差牌（跳過就留著，看得見規律） */
+.step-chip {
+  position: absolute; transform: translate(-50%, -50%);
+  font-size: clamp(13px, 3.6vw, 16px); font-weight: 900; color: #fff;
+  padding: 1px 8px; border-radius: 999px; border: 2.5px solid var(--ink);
+  white-space: nowrap; opacity: 0;
+  box-shadow: 0 2px 0 var(--ink-soft);
+}
+.step-chip.show { opacity: 1; animation: chip-drop .4s cubic-bezier(.4,1.6,.5,1); }
+.step-chip.up { background: var(--green); }
+.step-chip.down { background: var(--blue); }
+@keyframes chip-drop {
+  from { transform: translate(-50%, -90%) scale(.4); }
+  to   { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ---- 小鳥 ---- */
+#sprite-layer { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: visible; }
+#hopper {
+  position: absolute; left: 0; top: 0;
+  width: var(--bird-w, 58px); height: var(--bird-w, 58px);
+  transform: translate(-50%, -50%);
+  pointer-events: none; will-change: transform, left, top;
+}
+#hopper img { width: 100%; height: 100%; object-fit: contain; }
+#hopper.tappable { cursor: pointer; }
+#hopper.tappable::after { /* 提示光環 */
+  content: ""; position: absolute; inset: -8%;
+  border-radius: 50%; border: 3px dashed var(--gold-dk);
+  animation: bird-ring 1s ease-in-out infinite;
+}
+@keyframes bird-ring {
+  0%,100% { opacity: .3; transform: scale(.92); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+/* 觀察階段整片河可點：擴大命中區 */
+#pond.tap-ready { cursor: pointer; }
+
+/* ---- 答案列（延用 style.css 的 .ans-btn） ---- */
+
+/* 矮螢幕 */
+@media (max-height: 660px) {
+  #pond { height: clamp(180px, 34vh, 260px); }
+  #title-bird { width: clamp(56px, 16vw, 76px); }
+}

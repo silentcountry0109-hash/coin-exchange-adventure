@@ -163,6 +163,17 @@
       this.tone({ freq: 622, type: 'sine', dur: 0.26, vol: 0.4, when: 0.2 });
     }
 
+    // 小鳥跳一格（等差數列）：每次一樣的「啵—」上滑，強調「跳一樣多」
+    hop() {
+      this.tone({ freq: 340, type: 'triangle', dur: 0.14, vol: 0.4, slideTo: 620 });
+      this.tone({ freq: 680, type: 'sine', dur: 0.08, vol: 0.16, when: 0.08 });
+    }
+    // 落在石頭上的濺水聲
+    splash() {
+      this.noise({ dur: 0.18, vol: 0.16, from: 1800, to: 500, q: .8 });
+      this.tone({ freq: 260, type: 'sine', dur: 0.1, vol: 0.14, slideTo: 180 });
+    }
+
     // 蓋印章（九九口訣）：厚實的「咚」＋亮片
     stamp() {
       this.tone({ freq: 190, type: 'sine', dur: 0.16, vol: 0.5, slideTo: 120 });
