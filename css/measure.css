@@ -29,30 +29,15 @@
   background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(180,140,70,.08) 22px 24px);
 }
 
-/* ---- 物品（寬度＝length 公分的長條；左右端切齊刻度，emoji 收在條內） ---- */
+/* ---- 物品（卡通 SVG 插畫；寬度＝length 公分，左右端切齊刻度） ---- */
 #object {
   position: absolute;
-  height: var(--obj-h, 34px);
-  border-radius: 7px;
-  border: 3px solid var(--ink);
-  box-shadow: 0 4px 0 rgba(58,56,68,.28);
-  display: flex; align-items: center; justify-content: flex-end;
+  height: var(--obj-h, 40px);
   overflow: visible; z-index: 3;
+  filter: drop-shadow(0 4px 0 rgba(58,56,68,.18));
 }
-/* 上緣光澤，讓長條看起來像實物不是純色塊 */
-#object::before {
-  content: ""; position: absolute; left: 5%; right: 5%; top: 3px; height: 28%;
-  border-radius: 6px; background: rgba(255,255,255,.42); pointer-events: none;
-}
-/* 右端切齊線，強調「這裡就是末端」 */
-#object::after {
-  content: ""; position: absolute; right: 0; top: 12%; bottom: 12%; width: 3px;
-  background: rgba(0,0,0,.18); border-radius: 2px; pointer-events: none;
-}
-#object .obj-emoji {   /* 收在長條右側內部，不凸出（凸出會讓長度看起來變長） */
-  font-size: var(--emoji-size, 24px);
-  margin-right: 5px; line-height: 1; position: relative; z-index: 1;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,.2));
+#object .obj-svg {   /* SVG 填滿容器：內部座標已讓左端在 0、右端在 w */
+  display: block; width: 100%; height: 100%;
 }
 #object .obj-tag {   /* 上方浮出的名字牌，告訴孩子在量什麼 */
   position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);

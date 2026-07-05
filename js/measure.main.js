@@ -45,7 +45,7 @@
     const rulerH = Math.max(44, Math.min(56, Math.round(bh * 0.2)));
     const capLeft = 14, capRight = 30;
     const rulerW = capLeft + p.rulerMax * cmPx + capRight;
-    const objH = Math.max(28, Math.min(38, Math.round(rulerH * 0.66)));
+    const objH = Math.max(34, Math.min(48, Math.round(rulerH * 0.86)));
     const rulerTopFromBottom = 14 + rulerH;
     const objBottom = bh - rulerTopFromBottom - 12;
     const objTop = objBottom - objH;
@@ -82,20 +82,14 @@
     objectEl.style.top = M.objTop + 'px';
     objectEl.style.left = M.objX + 'px';
     objectEl.style.width = w + 'px';
-    objectEl.style.background = 'linear-gradient(' + p.obj.color + ', ' + shade(p.obj.color) + ')';
-    // emoji 尺寸限制在長條內，短物也不會凸出去（凸出會讓量到的長度看起來變長）
-    const es = Math.max(15, Math.min(Math.round(M.objH * 0.78), Math.round(w * 0.42)));
-    app.style.setProperty('--emoji-size', es + 'px');
+    objectEl.style.height = M.objH + 'px';
+    // 卡通 SVG 插畫：量測左端在 x=0、右端在 x=w（對齊尺的 0 與 length 刻度）
+    const art = (window.ObjectArt && window.ObjectArt.has(p.obj.key))
+      ? window.ObjectArt.draw(p.obj.key, w, M.objH) : '';
     objectEl.innerHTML =
-      '<span class="obj-tag">' + p.obj.name + '</span>' +
-      '<span class="obj-emoji">' + p.obj.emoji + '</span>' +
+      '<span class="obj-tag">' + p.obj.emoji + ' ' + p.obj.name + '</span>' +
+      art +
       '<span class="obj-zero"></span>';
-  }
-  function shade(hex) {
-    // 粗略加深，做長條底色漸層
-    const n = parseInt(hex.slice(1), 16);
-    const r = Math.max(0, (n >> 16) - 34), g = Math.max(0, ((n >> 8) & 255) - 34), b = Math.max(0, (n & 255) - 34);
-    return 'rgb(' + r + ',' + g + ',' + b + ')';
   }
 
   function layout(p) {
