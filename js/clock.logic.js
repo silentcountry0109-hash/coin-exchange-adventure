@@ -120,15 +120,19 @@
 
   /* ---------- 出題：Lv2 幾點幾分 ---------- */
   // 撥時刻 / 報讀交錯；分針不出 0 分；第 1 題用好認的 15/30/45
+  // 以「報讀靜態鐘面」為主（3 讀 2 撥），5 分為單位。
+  // 第 1 題用整刻度（:15/:30/:45）暖身；其餘用「非整刻度」的難分鐘，
+  // 逼出 4:35 這種——時針已過 4 快到 5，孩子最容易誤讀成 5:35。
+  const LV2_HARD_M = [5, 10, 20, 25, 35, 40, 50, 55];
   function genLv2(rng) {
     const out = [];
     const used = new Set();
-    const types = ['set', 'read', 'set', 'read', 'set'];
+    const types = ['set', 'read', 'read', 'set', 'read'];
     for (let i = 0; i < 5; i++) {
       let p, guard = 0;
       do {
         const h = rng.int(1, 12);
-        const m = (i === 0 ? rng.pick([3, 6, 9]) : rng.int(1, 11)) * 5;
+        const m = i === 0 ? rng.pick([15, 30, 45]) : rng.pick(LV2_HARD_M);
         if (types[i] === 'set') {
           p = { lv: 2, type: 'set', kind: 'time', h, m, start: { h, m: 0 }, pm: rng.next() < 0.5 };
         } else {
@@ -206,6 +210,9 @@
     const push = (o) => {
       if (o && !seen.has(key(o))) { seen.add(key(o)); opts.push(o); }
     };
+    // 最強干擾：時針快到下一格 → 誤讀成下一點（4:35 → 5:35）。
+    // 分針過半（m>=35）時時針明顯靠近下一個數字，這個錯最典型，優先放入。
+    if (m >= 35) push({ h: normHour(h + 1), m });
     push(swappedReading(h, m));
     const near = rng.shuffle([addTime(h, m, 5), addTime(h, m, -5)]);
     for (const o of near) { if (opts.length < 3) push(o); }
