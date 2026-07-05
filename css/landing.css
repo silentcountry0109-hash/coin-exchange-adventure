@@ -239,6 +239,7 @@ img { -webkit-user-drag: none; user-drag: none; }
 .p-train .ball { background: radial-gradient(circle at 34% 28%, #7ee0d6, #1f9e90 75%); }
 .p-clock .ball { background: radial-gradient(circle at 34% 28%, #ffb3c7, #d4557e 75%); }
 .p-river .ball { background: radial-gradient(circle at 34% 28%, #7fe0c0, #2f9e8a 75%); }
+.p-measure .ball { background: radial-gradient(circle at 34% 28%, #ffd97a, #d99a1e 75%); }
 .p-99 .ball {
   background: radial-gradient(circle at 34% 28%, #ffb46e, #d97014 75%);
   font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: #fff;

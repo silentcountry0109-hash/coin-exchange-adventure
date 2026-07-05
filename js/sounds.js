@@ -163,6 +163,17 @@
       this.tone({ freq: 622, type: 'sine', dur: 0.26, vol: 0.4, when: 0.2 });
     }
 
+    // 尺滑動（量長度）：輕輕的木頭摩擦
+    slide() {
+      this.noise({ dur: 0.12, vol: 0.09, from: 500, to: 900, q: 1.2 });
+    }
+    // 尺的 0 對齊物品左端：清脆「喀嗒—叮」的滿足感
+    alignDing() {
+      this.tone({ freq: 880, type: 'square', dur: 0.05, vol: 0.18 });
+      this.tone({ freq: 1318, type: 'sine', dur: 0.4, vol: 0.42, when: 0.05 });
+      this.tone({ freq: 1976, type: 'sine', dur: 0.55, vol: 0.22, when: 0.1 });
+    }
+
     // 小鳥跳一格（等差數列）：每次一樣的「啵—」上滑，強調「跳一樣多」
     hop() {
       this.tone({ freq: 340, type: 'triangle', dur: 0.14, vol: 0.4, slideTo: 620 });

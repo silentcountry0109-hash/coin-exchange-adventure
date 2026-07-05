@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://silentcountry0109-hash.github.io/coin-exchange-adventure/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%233d6bb3' stroke='%23ffffff' stroke-width='5'/><circle cx='38' cy='36' r='12' fill='%238cc860' opacity='.8'/><circle cx='62' cy='58' r='9' fill='%238cc860' opacity='.7'/></svg>">
-<link rel="stylesheet" href="css/landing.css?v=4">
+<link rel="stylesheet" href="css/landing.css?v=5">
 </head>
 <body>
 <div id="space">
@@ -60,6 +60,8 @@
             <span class="ball">🕐</span><span class="tag">整點與半點</span></a>
           <a class="planet p-river" data-star="river:*" href="river.html">
             <span class="ball">🐦</span><span class="tag">小鳥過河</span></a>
+          <a class="planet p-measure" data-star="measure:*" href="measure.html">
+            <span class="ball">📏</span><span class="tag">量量看</span></a>
         </div>
       </section>
 
@@ -179,6 +181,9 @@
     ]},
     { game: 'river', name: '🐦 小鳥過河', modes: [
       ['lv1', '找下一顆'], ['lv2', '補中間'], ['lv3', '看間隔'],
+    ]},
+    { game: 'measure', name: '📏 量量看', modes: [
+      ['lv1', '對齊零點'], ['lv2', '量長物'], ['lv3', '從刻度量'],
     ]},
   ];
   const overlay = document.getElementById('starmap-overlay');
