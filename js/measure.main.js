@@ -78,11 +78,18 @@
   function applyTx() { rulerEl.style.transform = 'translateX(' + Q.tx + 'px)'; }
 
   function placeObject(p) {
+    const w = p.length * M.cmPx;
     objectEl.style.top = M.objTop + 'px';
     objectEl.style.left = M.objX + 'px';
-    objectEl.style.width = (p.length * M.cmPx) + 'px';
+    objectEl.style.width = w + 'px';
     objectEl.style.background = 'linear-gradient(' + p.obj.color + ', ' + shade(p.obj.color) + ')';
-    objectEl.innerHTML = '<span class="obj-emoji">' + p.obj.emoji + '</span><span class="obj-zero"></span>';
+    // emoji 尺寸限制在長條內，短物也不會凸出去（凸出會讓量到的長度看起來變長）
+    const es = Math.max(15, Math.min(Math.round(M.objH * 0.78), Math.round(w * 0.42)));
+    app.style.setProperty('--emoji-size', es + 'px');
+    objectEl.innerHTML =
+      '<span class="obj-tag">' + p.obj.name + '</span>' +
+      '<span class="obj-emoji">' + p.obj.emoji + '</span>' +
+      '<span class="obj-zero"></span>';
   }
   function shade(hex) {
     // 粗略加深，做長條底色漸層
