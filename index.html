@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://silentcountry0109-hash.github.io/coin-exchange-adventure/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%233d6bb3' stroke='%23ffffff' stroke-width='5'/><circle cx='38' cy='36' r='12' fill='%238cc860' opacity='.8'/><circle cx='62' cy='58' r='9' fill='%238cc860' opacity='.7'/></svg>">
-<link rel="stylesheet" href="css/landing.css?v=5">
+<link rel="stylesheet" href="css/landing.css?v=6">
 </head>
 <body>
 <div id="space">
@@ -80,6 +80,8 @@
             <span class="ball">🕝</span><span class="tag">幾點幾分</span></a>
           <a class="planet p-clock" data-star="clock:lv3" href="clock.html?play=lv3">
             <span class="ball">⏱️</span><span class="tag">經過時間</span></a>
+          <a class="planet p-shop" data-star="shop:*" href="shop.html">
+            <span class="ball">🏪</span><span class="tag">柑仔店</span></a>
         </div>
       </section>
     </nav>
@@ -184,6 +186,9 @@
     ]},
     { game: 'measure', name: '📏 量量看', modes: [
       ['lv1', '對齊零點'], ['lv2', '量長物'], ['lv3', '從刻度量'],
+    ]},
+    { game: 'shop', name: '🏪 柑仔店', modes: [
+      ['lv1', '剛好付錢'], ['lv2', '幫忙找錢'], ['lv3', '往上數找錢'],
     ]},
   ];
   const overlay = document.getElementById('starmap-overlay');

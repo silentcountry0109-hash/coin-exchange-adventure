@@ -1,0 +1,182 @@
+/* ============================================================
+   柑仔店 — 付錢與找錢（面額 1/5/10/50）
+   疊在 style.css 設計系統之上
+   ============================================================ */
+
+#logo span:nth-child(1) { background: var(--coral); }
+#logo span:nth-child(2) { background: var(--gold-dk); }
+#logo span:nth-child(3) { background: var(--green); }
+.mode-btn.lv1 { background: linear-gradient(#ffc94d, var(--gold-dk)); }
+.mode-btn.lv2 { background: linear-gradient(#7ccc8c, var(--green)); }
+.mode-btn.lv3 { background: linear-gradient(#b79bf0, var(--purple)); }
+
+#pd-label { font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: var(--ink); }
+
+/* ---- 櫃台 ---- */
+#shopfront {
+  position: relative; margin: 12px 10px 0;
+  min-height: clamp(96px, 15vh, 128px);
+  background: linear-gradient(#fbf3dd, #f0e2be);
+  border: 3.5px solid var(--ink); border-radius: 18px;
+  box-shadow: 0 4px 0 var(--ink-soft);
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  z-index: 2;
+}
+/* 遮雨棚 */
+#shopfront::before {
+  content: ""; position: absolute; left: -3px; right: -3px; top: -10px; height: 14px;
+  border-radius: 10px 10px 0 0;
+  border: 3px solid var(--ink);
+  background: repeating-linear-gradient(90deg, #ef6a5a 0 22px, #fff 22px 44px);
+}
+#item-card {
+  position: relative; flex: none;
+  width: clamp(72px, 21vw, 96px);
+  background: #fff; border: 3px solid var(--ink); border-radius: 14px;
+  padding: 6px 6px 4px;
+  display: flex; flex-direction: column; align-items: center;
+  box-shadow: 0 3px 0 var(--ink-soft);
+}
+#item-art { width: 82%; }
+#item-art .item-svg { display: block; width: 100%; height: auto; }
+#price-tag {
+  margin-top: 2px;
+  font-size: clamp(15px, 4.4vw, 19px); font-weight: 900; color: #fff;
+  background: var(--coral); border: 2.5px solid var(--ink); border-radius: 999px;
+  padding: 0 12px 2px;
+  white-space: nowrap;
+}
+#customer { flex: 1; display: none; align-items: center; gap: 6px; min-width: 0; }
+#customer.show { display: flex; }
+#customer-img { width: clamp(40px, 12vw, 56px); flex: none; }
+#paid-note {
+  display: flex; align-items: center; gap: 5px;
+  font-size: clamp(13px, 3.7vw, 16px); font-weight: 900; color: var(--ink);
+  background: #fff; border: 2.5px solid var(--ink); border-radius: 12px;
+  padding: 4px 10px; box-shadow: 0 2px 0 var(--ink-soft);
+  white-space: nowrap;
+}
+#keeper {
+  width: clamp(58px, 17vw, 80px); flex: none;
+  margin-left: auto; margin-bottom: -14px;
+}
+
+/* ---- 付錢盤 ---- */
+#paytray {
+  position: relative; margin: 12px 10px 0;
+  min-height: calc(var(--c10) + 42px);
+  background: var(--tray-bg); border: 3px solid var(--tray-bd); border-radius: 18px;
+  padding: clamp(14px, 2vh, 18px) 74px 8px 8px;
+  z-index: 2;
+}
+#paytray-label {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  font-size: clamp(12px, 3.4vw, 15px); font-weight: 900; color: #fff;
+  background: var(--tray-bd); padding: 2px 14px; border-radius: 999px;
+  border: 2.5px solid var(--ink); white-space: nowrap; z-index: 3;
+}
+#paytray.drag-over { box-shadow: 0 0 0 5px rgba(224, 112, 154, .5); }
+#tray-slots {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  align-items: center; min-height: var(--c10);
+}
+.tslot { border-radius: 50%; opacity: 0; }
+.tslot.s1  { width: var(--c1);  height: var(--c1); }
+.tslot.s5  { width: var(--c5);  height: var(--c5); }
+.tslot.s10 { width: var(--c10); height: var(--c10); }
+#btn-bell {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 58px; height: 58px;
+  font-size: 22px; line-height: 1.05;
+  display: grid; place-items: center;
+  font-family: var(--font); font-weight: 900;
+  background: linear-gradient(#ffe08a, var(--gold));
+  border: 3px solid var(--ink); border-radius: 50%;
+  box-shadow: 0 4px 0 var(--ink-soft); cursor: pointer;
+  touch-action: manipulation;
+}
+#btn-bell small { font-size: 11px; display: block; }
+#btn-bell:active { transform: translateY(-50%) scale(.93); }
+#btn-bell.hidden { display: none; }
+#btn-bell.pulse { animation: bell-pulse 1s ease-in-out infinite; }
+@keyframes bell-pulse {
+  0%,100% { box-shadow: 0 4px 0 var(--ink-soft); }
+  50% { box-shadow: 0 4px 0 var(--ink-soft), 0 0 0 7px rgba(240,168,50,.5); }
+}
+#cum-badge {
+  position: absolute; top: -13px; right: 8px;
+  font-size: clamp(12px, 3.4vw, 14px); font-weight: 900; color: #7c5210;
+  background: var(--gold); border: 2.5px solid var(--ink); border-radius: 999px;
+  padding: 1px 12px; z-index: 3; display: none;
+}
+#cum-badge.show { display: block; }
+
+/* ---- 錢包／收銀機 ---- */
+#wallet {
+  position: relative; margin: 12px 10px 0;
+  background: var(--ones-bg); border: 3px solid var(--ones-bd); border-radius: 18px;
+  padding: clamp(14px, 2vh, 18px) 8px 8px;
+  z-index: 2;
+}
+#wallet-label {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  font-size: clamp(12px, 3.4vw, 15px); font-weight: 900; color: #fff;
+  background: var(--gold-dk); padding: 2px 14px; border-radius: 999px;
+  border: 2.5px solid var(--ink); white-space: nowrap; z-index: 3;
+}
+#wallet.drag-over { box-shadow: 0 0 0 5px rgba(240, 168, 50, .5); }
+#wallet-rows { display: flex; flex-direction: column; gap: 6px; }
+.wrow { display: flex; gap: 5px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.wslot { border-radius: 50%; border: 2px dashed var(--ink-soft); opacity: .5; }
+.wslot.s1  { width: var(--c1);  height: var(--c1); }
+.wslot.s5  { width: var(--c5);  height: var(--c5); }
+.wslot.s10 { width: var(--c10); height: var(--c10); }
+
+/* ---- 新面額（.coin 基底樣式來自 style.css） ---- */
+:root { --c5: calc(var(--c1) * 1.14); --c50: calc(var(--c10) * 1.18); }
+.coin.c5 {
+  width: var(--c5); height: var(--c5);
+  background: radial-gradient(circle at 32% 26%, #ffe2c4, #efb27a 45%, #d18a4a 100%);
+  color: #6b451a;
+  font-size: calc(var(--c5) * .48);
+}
+.coin.c5 i { font-size: calc(var(--c5) * .23); }
+.coin.c50 {
+  width: var(--c50); height: var(--c50);
+  background: radial-gradient(circle at 32% 26%, #fff3c4, #ffd166 40%, #e8960f 100%);
+  color: #7c5210;
+  font-size: calc(var(--c50) * .38);
+}
+.coin.c50 i { font-size: calc(var(--c50) * .2); }
+.coin.c50::before { inset: 8%; border-width: 2.5px; }
+/* 客人付的錢（櫃台展示用，非拖曳） */
+#paid-note .mini-coin {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  font-size: 13px; font-weight: 900; color: #7c5210;
+  background: radial-gradient(circle at 32% 26%, #fff3c4, #ffd166 40%, #e8960f 100%);
+  border: 2.5px solid var(--ink);
+}
+
+/* 大字計數（id 讓給櫃台了，樣式沿用 style.css 的 #counter 規則） */
+#counter-num {
+  position: absolute; left: 50%; top: 30%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(48px, 15vw, 80px); font-weight: 900; color: var(--blue-dk);
+  text-shadow: 3px 3px 0 #fff, -3px -3px 0 #fff, 3px -3px 0 #fff, -3px 3px 0 #fff, 0 6px 0 rgba(58,56,68,.2);
+  opacity: 0; pointer-events: none; z-index: 22;
+}
+#counter-num.show { opacity: 1; animation: counter-pop .32s cubic-bezier(.4,1.8,.6,1); }
+
+/* Sprite 層 */
+#sprite-layer {
+  position: absolute; inset: 0; z-index: 6;
+  pointer-events: none; overflow: visible;
+}
+#sprite-layer .sprite { pointer-events: auto; }
+
+@media (max-height: 660px) {
+  #shopfront { min-height: 84px; }
+  #keeper { width: clamp(50px, 14vw, 64px); }
+}
