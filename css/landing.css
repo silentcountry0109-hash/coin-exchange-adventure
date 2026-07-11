@@ -242,6 +242,7 @@ img { -webkit-user-drag: none; user-drag: none; }
 .p-measure .ball { background: radial-gradient(circle at 34% 28%, #ffd97a, #d99a1e 75%); }
 .p-shop .ball { background: radial-gradient(circle at 34% 28%, #ff9a8b, #c74e3f 75%); }
 .p-cake .ball { background: radial-gradient(circle at 34% 28%, #f9c0d8, #d4557e 75%); }
+.p-tangram .ball { background: radial-gradient(circle at 34% 28%, #a8c8f7, #4a6cc4 75%); }
 .p-99 .ball {
   background: radial-gradient(circle at 34% 28%, #ffb46e, #d97014 75%);
   font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: #fff;

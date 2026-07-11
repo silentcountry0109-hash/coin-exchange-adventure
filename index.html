@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://silentcountry0109-hash.github.io/coin-exchange-adventure/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%233d6bb3' stroke='%23ffffff' stroke-width='5'/><circle cx='38' cy='36' r='12' fill='%238cc860' opacity='.8'/><circle cx='62' cy='58' r='9' fill='%238cc860' opacity='.7'/></svg>">
-<link rel="stylesheet" href="css/landing.css?v=7">
+<link rel="stylesheet" href="css/landing.css?v=8">
 </head>
 <body>
 <div id="space">
@@ -44,6 +44,8 @@
             <span class="ball">🚂</span><span class="tag">湊 5 小火車</span></a>
           <a class="planet p-train" data-star="train:lv2" href="train.html?play=lv2">
             <span class="ball">🚃</span><span class="tag">湊 10 小火車</span></a>
+          <a class="planet p-tangram" data-star="tangram:*" href="tangram.html">
+            <span class="ball">🧩</span><span class="tag">七巧板</span></a>
         </div>
       </section>
 
@@ -171,6 +173,9 @@
   const REGISTRY = [
     { game: 'train', name: '🚂 湊十小火車', modes: [
       ['lv1', '湊 5（大班）'], ['lv2', '湊 10（大班）'], ['lv3', '湊十法（小一）'],
+    ]},
+    { game: 'tangram', name: '🧩 七巧板', modes: [
+      ['lv1', '形狀變變變'], ['lv2', '圖案拼拼樂'], ['lv3', '影子挑戰'],
     ]},
     { game: 'money', name: '🪙 換錢大冒險', modes: [
       ['add', '加法'], ['sub', '減法'], ['mul', '乘法'], ['div', '除法'], ['mix', '混合'],

@@ -1,0 +1,92 @@
+/* ============================================================
+   七巧板 — 形狀組合與空間旋轉
+   疊在 style.css 設計系統之上
+   ============================================================ */
+
+/* ⚠️ 新遊戲頁必抄樣板：sprite 層一定要絕對定位（mul99、cake 都踩過） */
+#sprite-layer {
+  position: absolute; inset: 0; z-index: 6;
+  pointer-events: none; overflow: visible;
+}
+.sprite { position: absolute; left: 0; top: 0; will-change: transform; }
+
+#logo span:nth-child(1) { background: var(--coral); }
+#logo span:nth-child(2) { background: var(--sky-dk, #4aa3d8); }
+#logo span:nth-child(3) { background: var(--gold-dk); }
+#logo span:nth-child(4) { background: var(--green); }
+.mode-btn.lv1 { background: linear-gradient(#7cc7f0, #4aa3d8); }
+.mode-btn.lv2 { background: linear-gradient(#ffc94d, var(--gold-dk)); }
+.mode-btn.lv3 { background: linear-gradient(#8f83c9, #6b5fae); }
+
+#pd-label { font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: var(--ink); }
+
+/* ---- 拼圖舞台 ---- */
+#tangram-stage {
+  position: relative; margin: 10px 10px 0;
+  min-height: clamp(320px, 52vh, 450px);
+  background: linear-gradient(#fbf3dd, #f0e2be);
+  border: 3.5px solid var(--ink); border-radius: 20px;
+  box-shadow: 0 4px 0 var(--ink-soft);
+  z-index: 2;
+  overflow: hidden;
+}
+#puzzle-holder { position: absolute; inset: 0; pointer-events: none; }
+#puzzle-holder svg { position: absolute; }
+
+/* 目標框（lv1/lv2：虛線內框）；stroke 對米色底要 ≥3:1 才看得清 */
+.slot-poly {
+  fill: #ece0c0; stroke: #857b66;
+  stroke-dasharray: 0.32 0.26; stroke-linejoin: round;
+}
+/* lv3 影子 */
+.slot-poly.shadow {
+  fill: #57536a; stroke: #57536a; stroke-dasharray: none;
+}
+/* 偷看提示時的內框線 */
+.slot-poly.peek { stroke: #fff; stroke-dasharray: 0.36 0.3; }
+/* 放對位置但方向不對時的亮框 */
+.ghost-poly {
+  fill: none; stroke: var(--gold); stroke-dasharray: 0.4 0.3;
+  stroke-linejoin: round; animation: ghost-blink 0.5s ease-in-out infinite;
+}
+@keyframes ghost-blink { 50% { stroke-opacity: 0.25; } }
+
+/* ---- 拼塊 sprite ----
+   命中區＝可見多邊形本身（外框 div 是透明大方塊，開 pointer-events
+   會蓋住下面的 💡 按鈕）；事件從 polygon 冒泡回 #sprite-layer 處理 */
+.sprite.piece { pointer-events: none; cursor: grab; touch-action: none; }
+.sprite.piece .piece-svg polygon { pointer-events: auto; touch-action: none; cursor: grab; }
+.sprite.piece.dragging { cursor: grabbing; z-index: 60; }
+.sprite.piece.locked .piece-svg polygon { pointer-events: none; cursor: default; }
+.piece-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.piece-svg polygon {
+  stroke: var(--ink); stroke-width: 0.16; stroke-linejoin: round;
+  paint-order: stroke;
+}
+.sprite.piece.dragging .piece-svg { filter: drop-shadow(0 6px 6px rgba(58,56,68,.3)); }
+.sprite.piece.locked .piece-svg { filter: none; }
+
+/* 完成的眼睛 */
+.sprite.fig-eye { pointer-events: none; }
+
+/* ---- 偷看按鈕（lv3） ---- */
+#btn-hint {
+  position: absolute; right: 8px; top: 8px; z-index: 8;
+  display: none;
+  font-size: 22px; line-height: 1;
+  padding: 8px 10px;
+  background: #fff; border: 3px solid var(--ink); border-radius: 14px;
+  box-shadow: 0 3px 0 var(--ink-soft);
+  font-family: var(--font);
+}
+#btn-hint.show { display: block; }
+#btn-hint:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink-soft); }
+#btn-hint.used { opacity: 0.55; }
+#btn-hint .cost { font-size: 11px; font-weight: 900; color: var(--coral-dk); display: block; }
+
+/* 形狀名最長 5 字（平行四邊形），縮字級讓它單行放得下 */
+.ans-btn { font-size: clamp(15px, 4.4vw, 22px); max-width: 150px; }
+
+@media (max-height: 660px) {
+  #tangram-stage { min-height: clamp(270px, 46vh, 340px); }
+}
