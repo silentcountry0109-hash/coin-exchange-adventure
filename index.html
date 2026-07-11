@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://silentcountry0109-hash.github.io/coin-exchange-adventure/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%233d6bb3' stroke='%23ffffff' stroke-width='5'/><circle cx='38' cy='36' r='12' fill='%238cc860' opacity='.8'/><circle cx='62' cy='58' r='9' fill='%238cc860' opacity='.7'/></svg>">
-<link rel="stylesheet" href="css/landing.css?v=6">
+<link rel="stylesheet" href="css/landing.css?v=7">
 </head>
 <body>
 <div id="space">
@@ -82,6 +82,8 @@
             <span class="ball">⏱️</span><span class="tag">經過時間</span></a>
           <a class="planet p-shop" data-star="shop:*" href="shop.html">
             <span class="ball">🏪</span><span class="tag">柑仔店</span></a>
+          <a class="planet p-cake" data-star="cake:*" href="cake.html">
+            <span class="ball">🍰</span><span class="tag">平分蛋糕</span></a>
         </div>
       </section>
     </nav>
@@ -189,6 +191,9 @@
     ]},
     { game: 'shop', name: '🏪 柑仔店', modes: [
       ['lv1', '剛好付錢'], ['lv2', '幫忙找錢'], ['lv3', '往上數找錢'],
+    ]},
+    { game: 'cake', name: '🍰 平分蛋糕', modes: [
+      ['lv1', '公平切蛋糕'], ['lv2', '幾分之一'], ['lv3', '誰的比較大'],
     ]},
   ];
   const overlay = document.getElementById('starmap-overlay');

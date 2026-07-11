@@ -1,0 +1,105 @@
+/* ============================================================
+   平分蛋糕 — 分數初步（切公平、幾分之一、比大小）
+   疊在 style.css 設計系統之上
+   ============================================================ */
+
+#logo span:nth-child(1) { background: var(--coral); }
+#logo span:nth-child(2) { background: var(--gold-dk); }
+#logo span:nth-child(3) { background: var(--purple); }
+#logo span:nth-child(4) { background: var(--green); }
+.mode-btn.lv1 { background: linear-gradient(#f78a7c, var(--coral)); }
+.mode-btn.lv2 { background: linear-gradient(#ffc94d, var(--gold-dk)); }
+.mode-btn.lv3 { background: linear-gradient(#b79bf0, var(--purple)); }
+
+#pd-label { font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: var(--ink); }
+
+/* ---- 蛋糕舞台 ---- */
+#cake-stage {
+  position: relative; margin: 12px 10px 0;
+  min-height: clamp(240px, 42vh, 350px);
+  background: linear-gradient(#fbf3dd, #f0e2be);
+  border: 3.5px solid var(--ink); border-radius: 20px;
+  box-shadow: 0 4px 0 var(--ink-soft);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  padding: 10px;
+  z-index: 2;
+}
+#cakes-row {
+  display: flex; gap: clamp(10px, 4vw, 24px);
+  align-items: center; justify-content: center;
+}
+.cake-box { position: relative; }
+.cake-box .cake-svg { display: block; }
+.cake-name {   /* lv3：蛋糕下的夥伴名牌 */
+  margin-top: 2px; text-align: center;
+  font-size: clamp(12px, 3.4vw, 15px); font-weight: 900; color: var(--ink);
+}
+.cake-name img { width: clamp(34px, 10vw, 46px); display: block; margin: 0 auto; }
+
+/* 切線（svg 內） */
+.cutline {
+  stroke: #fff; stroke-width: 3.5; stroke-dasharray: 7 6;
+  filter: drop-shadow(0 0 2px rgba(58,56,68,.6));
+}
+.cutline.next { animation: cutline-blink 1s ease-in-out infinite; }
+@keyframes cutline-blink { 50% { stroke: var(--gold); stroke-width: 5; } }
+.cutline.done { stroke: var(--ink); stroke-dasharray: none; stroke-width: 3; animation: none; }
+.cutline.bad { stroke: var(--coral-dk); animation: none; }
+.cuthit { stroke: transparent; stroke-width: 30; pointer-events: stroke; cursor: pointer; }
+/* 不公平預覽的大小標籤 */
+.size-label {
+  font-family: var(--font); font-weight: 900;
+  fill: var(--coral-dk); stroke: #fff; stroke-width: 3; paint-order: stroke;
+}
+
+/* ---- 夥伴列（lv1 分蛋糕對象） ---- */
+#friends-row {
+  display: flex; gap: clamp(10px, 4vw, 22px);
+  align-items: flex-end; justify-content: center;
+  min-height: 56px;
+}
+.friend {
+  position: relative; text-align: center;
+  transition: transform .15s;
+}
+.friend img { width: clamp(38px, 11vw, 52px); display: block; }
+.friend.drag-over { transform: scale(1.12); }
+.friend .plate-dish {
+  width: 100%; height: 8px; margin-top: -2px;
+  background: #fff; border: 2.5px solid var(--ink); border-radius: 50%;
+}
+
+/* ---- 分數答案按鈕（直式分數） ---- */
+.ans-btn.frac {
+  display: inline-flex; flex-direction: column; align-items: center;
+  gap: 0; line-height: 1.05;
+  padding: 6px 0 8px;
+  font-size: clamp(18px, 5.2vw, 24px);
+}
+.ans-btn.frac .bar {
+  width: 1.2em; height: 3px; background: currentColor; border-radius: 2px;
+  margin: 1px 0;
+}
+
+/* ---- Sprite 層（蛋糕塊的座標系；忘了定位會整層飄走） ---- */
+#sprite-layer {
+  position: absolute; inset: 0; z-index: 6;
+  pointer-events: none; overflow: visible;
+}
+
+/* 蛋糕切塊 sprite（透明大方塊、內含扇形 svg）
+   非可拖塊 pointer-events:none，重疊的方形命中區才不會擋住可拖的那塊 */
+.sprite.wedge {
+  position: absolute; left: 0; top: 0;
+  will-change: transform;
+  pointer-events: none;
+}
+.sprite.wedge.grabbable { pointer-events: auto; cursor: grab; touch-action: none; }
+.sprite.wedge.grabbable .wedge-svg { filter: drop-shadow(0 0 8px rgba(255, 209, 102, .95)); }
+.sprite.wedge.dragging { cursor: grabbing; z-index: 60; }
+.sprite.wedge .wedge-svg { display: block; width: 100%; height: 100%; }
+
+@media (max-height: 660px) {
+  #cake-stage { min-height: clamp(200px, 36vh, 280px); }
+}
