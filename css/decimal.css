@@ -1,0 +1,94 @@
+/* ============================================================
+   一位小數 — 量杯十分之一・數線・小數加法
+   疊在 style.css 設計系統之上
+   ============================================================ */
+
+/* ⚠️ 新遊戲頁必抄樣板：sprite 層一定要絕對定位 */
+#sprite-layer {
+  position: absolute; inset: 0; z-index: 6;
+  pointer-events: none; overflow: visible;
+}
+.sprite { position: absolute; left: 0; top: 0; will-change: transform; }
+
+#logo span:nth-child(1) { background: var(--sky-dk, #2f9ec4); }
+#logo span:nth-child(2) { background: var(--green); }
+#logo span:nth-child(3) { background: var(--gold-dk); }
+#logo span:nth-child(4) { background: var(--coral); }
+.mode-btn.lv1 { background: linear-gradient(#6fcdec, #2f9ec4); }
+.mode-btn.lv2 { background: linear-gradient(#8fd3a0, #4a9c5e); }
+.mode-btn.lv3 { background: linear-gradient(#ffc94d, var(--gold-dk)); }
+
+#pd-label { font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: var(--ink); }
+
+/* ---- 舞台 ---- */
+#dec-stage {
+  position: relative; margin: 12px 10px 0;
+  min-height: clamp(280px, 46vh, 400px);
+  background: linear-gradient(#eaf6fb, #d3ecf6);
+  border: 3.5px solid var(--ink); border-radius: 20px;
+  box-shadow: 0 4px 0 var(--ink-soft);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  padding: 12px 10px;
+  z-index: 2;
+}
+#cups-row {
+  display: flex; gap: clamp(14px, 6vw, 42px);
+  align-items: flex-end; justify-content: center;
+}
+.cup-box { position: relative; text-align: center; }
+.cup-box .cup-svg { display: block; }
+.cup-cap {   /* 杯子下方讀數 */
+  margin-top: 4px; font-size: clamp(15px, 4.6vw, 22px);
+  font-weight: 900; color: var(--ink); min-height: 1.2em;
+}
+.cup-cap.q { color: var(--sky-dk, #2f9ec4); }
+
+/* 杯身 svg 內的元素 class（水面、刻度、格線） */
+.cup-body { fill: #fff; stroke: var(--ink); stroke-width: 3; }
+.cup-water { fill: #7fd7f0; }
+.cup-water.full { fill: #4fbfe0; }
+.cup-grid { stroke: #b9d7e2; stroke-width: 1.2; }
+.cup-tick { stroke: var(--ink); stroke-width: 2; }
+.cup-cell-hot { fill: rgba(255, 209, 102, .55); stroke: var(--gold-dk); stroke-width: 2; }
+
+/* +號（lv3 兩杯之間） */
+#cups-row .plus-sign {
+  align-self: center; font-size: clamp(26px, 8vw, 40px);
+  font-weight: 900; color: var(--ink);
+}
+
+/* ---- 數線（lv2） ---- */
+#numline { position: relative; width: 100%; display: none; }
+#numline.show { display: block; }
+#numline svg { display: block; width: 100%; }
+.nl-axis { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.nl-tick { stroke: var(--ink); stroke-width: 2; }
+.nl-tick.big { stroke-width: 3.5; }
+.nl-num { font-family: var(--font); font-weight: 900; fill: var(--ink); }
+.nl-target-flag { fill: var(--coral); stroke: var(--ink); stroke-width: 2; }
+.nl-target-txt { font-family: var(--font); font-weight: 900; fill: #fff; }
+
+/* 青蛙標記（數線上的可拖角色） */
+.sprite.frog { pointer-events: none; }
+.sprite.frog.grabbable { pointer-events: auto; cursor: grab; touch-action: none; }
+.sprite.frog.grabbable .frog-svg { filter: drop-shadow(0 0 7px rgba(255, 209, 102, .95)); }
+.sprite.frog.dragging { cursor: grabbing; z-index: 60; }
+.frog-svg { display: block; width: 100%; height: 100%; }
+
+/* 倒水按鈕（lv3） */
+#pour-btn {
+  display: none;
+  font-size: clamp(16px, 4.6vw, 20px); font-weight: 900;
+  font-family: var(--font); color: #fff;
+  background: linear-gradient(#6fcdec, #2f9ec4);
+  border: 3px solid var(--ink); border-radius: 16px;
+  box-shadow: 0 4px 0 var(--ink-soft);
+  padding: 10px 22px; margin-top: 2px;
+}
+#pour-btn.show { display: inline-block; }
+#pour-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink-soft); }
+
+@media (max-height: 660px) {
+  #dec-stage { min-height: clamp(230px, 40vh, 300px); }
+}

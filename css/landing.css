@@ -202,6 +202,7 @@ img { -webkit-user-drag: none; user-drag: none; }
 .orbit.g-k .orbit-label  { background: #ffd97a; }
 .orbit.g-1 .orbit-label  { background: #8fd3ff; }
 .orbit.g-2 .orbit-label  { background: #c6aef7; }
+.orbit.g-3 .orbit-label  { background: #8fe0c4; }
 .orbit-planets {
   display: flex; flex-wrap: wrap;
   justify-content: center; align-items: flex-start;
@@ -243,6 +244,7 @@ img { -webkit-user-drag: none; user-drag: none; }
 .p-shop .ball { background: radial-gradient(circle at 34% 28%, #ff9a8b, #c74e3f 75%); }
 .p-cake .ball { background: radial-gradient(circle at 34% 28%, #f9c0d8, #d4557e 75%); }
 .p-tangram .ball { background: radial-gradient(circle at 34% 28%, #a8c8f7, #4a6cc4 75%); }
+.p-decimal .ball { background: radial-gradient(circle at 34% 28%, #7fd7f0, #1f8fb8 75%); }
 .p-99 .ball {
   background: radial-gradient(circle at 34% 28%, #ffb46e, #d97014 75%);
   font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: #fff;
