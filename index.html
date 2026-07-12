@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://silentcountry0109-hash.github.io/coin-exchange-adventure/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%233d6bb3' stroke='%23ffffff' stroke-width='5'/><circle cx='38' cy='36' r='12' fill='%238cc860' opacity='.8'/><circle cx='62' cy='58' r='9' fill='%238cc860' opacity='.7'/></svg>">
-<link rel="stylesheet" href="css/landing.css?v=9">
+<link rel="stylesheet" href="css/landing.css?v=10">
 </head>
 <body>
 <div id="space">
@@ -94,6 +94,8 @@
         <div class="orbit-planets">
           <a class="planet p-decimal" data-star="decimal:*" href="decimal.html">
             <span class="ball">🥤</span><span class="tag">一位小數</span></a>
+          <a class="planet p-perimeter" data-star="perimeter:*" href="perimeter.html">
+            <span class="ball">📐</span><span class="tag">周長探險</span></a>
         </div>
       </section>
     </nav>
@@ -210,6 +212,9 @@
     ]},
     { game: 'decimal', name: '🥤 一位小數', modes: [
       ['lv1', '讀小數'], ['lv2', '數線找家'], ['lv3', '小數加法'],
+    ]},
+    { game: 'perimeter', name: '📐 周長探險', modes: [
+      ['lv1', '繞一圈數格子'], ['lv2', '邊長加加看'], ['lv3', '誰的周長長'],
     ]},
   ];
   const overlay = document.getElementById('starmap-overlay');

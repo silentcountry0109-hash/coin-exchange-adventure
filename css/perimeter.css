@@ -1,0 +1,96 @@
+/* ============================================================
+   周長探險 — 螞蟻繞格線直角圖形一圈數邊長
+   疊在 style.css 設計系統之上
+   ============================================================ */
+
+/* ⚠️ 新遊戲頁必抄樣板：sprite 層一定要絕對定位 */
+#sprite-layer {
+  position: absolute; inset: 0; z-index: 6;
+  pointer-events: none; overflow: visible;
+}
+.sprite { position: absolute; left: 0; top: 0; will-change: transform; }
+
+#logo span:nth-child(1) { background: var(--green); }
+#logo span:nth-child(2) { background: var(--gold-dk); }
+#logo span:nth-child(3) { background: var(--coral); }
+#logo span:nth-child(4) { background: var(--purple); }
+.mode-btn.lv1 { background: linear-gradient(#8fd3a0, #2f9e8a); }
+.mode-btn.lv2 { background: linear-gradient(#ffc94d, var(--gold-dk)); }
+.mode-btn.lv3 { background: linear-gradient(#b79bf0, var(--purple)); }
+
+#pd-label { font-size: clamp(15px, 4.4vw, 20px); font-weight: 900; color: var(--ink); }
+
+/* ---- 舞台 ---- */
+#peri-stage {
+  position: relative; margin: 12px 10px 0;
+  min-height: clamp(280px, 46vh, 400px);
+  background: linear-gradient(#eef7ee, #dbeede);
+  border: 3.5px solid var(--ink); border-radius: 20px;
+  box-shadow: 0 4px 0 var(--ink-soft);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  padding: 12px 10px;
+  z-index: 2;
+}
+#shapes-row {
+  display: flex; gap: clamp(10px, 4vw, 26px);
+  align-items: center; justify-content: center; flex-wrap: wrap;
+}
+.shape-box { position: relative; text-align: center; }
+.shape-box .shape-svg { display: block; }
+.shape-name {   /* lv3 圖形下的標籤 */
+  margin-top: 2px; font-size: clamp(13px, 3.6vw, 16px); font-weight: 900; color: var(--ink);
+}
+.shape-perim {  /* lv3 走完顯示的周長數 */
+  margin-top: 1px; font-size: clamp(15px, 4.4vw, 20px); font-weight: 900;
+  color: var(--green-dk, #2f7e5e); min-height: 1.1em;
+}
+.shape-box.tappable { cursor: pointer; }
+
+/* svg 內部元素 class */
+.grid-line { stroke: #bcd8c4; stroke-width: 0.05; }
+.shape-fill { fill: rgba(143, 211, 160, .28); stroke: none; }
+.edge { stroke: var(--ink); stroke-width: 0.22; stroke-linecap: round; fill: none; }
+.edge.done { stroke: var(--green, #4a9c5e); }
+.edge.glow { stroke: var(--gold); stroke-width: 0.34; animation: edge-blink .8s ease-in-out infinite; }
+@keyframes edge-blink { 50% { stroke: var(--coral); } }
+.corner-dot { fill: var(--ink); }
+.side-label {   /* lv2 邊長數字 */
+  font-family: var(--font); font-weight: 900; font-size: 0.72px;
+  fill: var(--ink); stroke: #fff; stroke-width: 0.14; paint-order: stroke;
+  text-anchor: middle; dominant-baseline: central;
+}
+.side-label.lit { fill: var(--coral-dk); }
+
+/* 螞蟻/瓢蟲 sprite */
+.sprite.bug { pointer-events: none; }
+.bug-svg { display: block; width: 100%; height: 100%; }
+
+/* ---- 走一圈列（周長計＋按鈕） ---- */
+#walk-bar {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  flex-wrap: wrap;
+}
+#peri-readout {
+  font-weight: 900; color: var(--ink);
+  font-size: clamp(16px, 4.8vw, 22px);
+  background: #fff; border: 3px solid var(--ink); border-radius: 14px;
+  padding: 4px 14px; box-shadow: 0 3px 0 var(--ink-soft);
+}
+#peri-readout::before { content: '周長 '; font-size: 0.8em; color: var(--ink-soft); }
+#peri-num { color: var(--green-dk, #2f7e5e); }
+#btn-walk {
+  font-size: clamp(15px, 4.4vw, 19px); font-weight: 900;
+  font-family: var(--font); color: #fff;
+  background: linear-gradient(#6ec48a, #2f9e8a);
+  border: 3px solid var(--ink); border-radius: 16px;
+  box-shadow: 0 4px 0 var(--ink-soft);
+  padding: 9px 20px;
+}
+#btn-walk:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink-soft); }
+#btn-walk.hidden { display: none; }
+#walk-bar.hidden { display: none; }
+
+@media (max-height: 660px) {
+  #peri-stage { min-height: clamp(230px, 40vh, 300px); }
+}

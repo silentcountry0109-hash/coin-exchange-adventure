@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#bde4f8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>周長探險｜Danlu Kids Space</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='20' y='28' width='60' height='44' rx='4' fill='none' stroke='%232f9e8a' stroke-width='9' stroke-dasharray='9 6'/><circle cx='20' cy='28' r='9' fill='%23e24b4a' stroke='%233a3844' stroke-width='4'/></svg>">
+<link rel="stylesheet" href="css/style.css?v=6">
+<link rel="stylesheet" href="css/perimeter.css?v=1">
+</head>
+<body>
+<div id="app">
+
+  <div id="bg-sky">
+    <div class="cloud c-a"></div>
+    <div class="cloud c-b"></div>
+    <div class="cloud c-c"></div>
+  </div>
+
+  <!-- ================= 標題（選關卡） ================= -->
+  <section id="screen-title" class="screen active">
+    <div class="hill h-a"></div>
+    <div class="hill h-b"></div>
+    <a id="btn-space" class="icon-btn" href="index.html" aria-label="回太空站">🌌</a>
+    <div id="logo" aria-label="周長探險">
+      <span>周</span><span>長</span><span>探</span><span>險</span>
+    </div>
+    <div id="title-sub">繞一圈・數邊長・比周長</div>
+    <div id="title-chars">
+      <div id="lottie-title-elephant"></div>
+      <div id="lottie-title-boy"></div>
+    </div>
+    <div id="title-menu">
+      <button class="mode-btn lv1" data-mode="lv1">🐜 繞一圈數格子</button>
+      <button class="mode-btn lv2" data-mode="lv2">➕ 邊長加加看</button>
+      <button class="mode-btn lv3" data-mode="lv3">⚖️ 誰的周長長</button>
+    </div>
+  </section>
+
+  <!-- ================= 遊戲 ================= -->
+  <section id="screen-game" class="screen">
+    <header id="hud">
+      <button id="btn-home" class="icon-btn" aria-label="回選單">🏠</button>
+      <div id="problem-display"><span id="pd-label">周長</span></div>
+      <div id="stars"><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i><i>⭐</i></div>
+      <button id="btn-sound" class="icon-btn" aria-label="音效開關">🔊</button>
+    </header>
+
+    <!-- 圖形舞台 -->
+    <div id="peri-stage">
+      <div id="shapes-row"></div>
+      <div id="walk-bar">
+        <div id="peri-readout"><span id="peri-num">0</span></div>
+        <button id="btn-walk">走一邊 🐜</button>
+      </div>
+    </div>
+
+    <div id="mid-row">
+      <div id="guide">
+        <div id="lottie-guide"></div>
+        <div id="sweat">💧</div>
+        <div id="bubble"></div>
+      </div>
+    </div>
+
+    <div id="answers"></div>
+
+    <div id="sprite-layer"></div>
+    <div id="fx-layer">
+      <div id="counter"></div>
+      <div id="caption"></div>
+      <div id="hint-hand">👆</div>
+    </div>
+  </section>
+
+  <!-- ================= 結算 ================= -->
+  <section id="screen-end" class="screen">
+    <div class="hill h-a"></div>
+    <div class="hill h-b"></div>
+    <div id="end-title">周長高手！</div>
+    <div id="end-stars"></div>
+    <div id="end-msg"></div>
+    <div id="end-chars">
+      <img id="end-deco-mammoth" src="assets/deco_news_mammoth.png" alt="">
+      <div id="lottie-end-boy"></div>
+    </div>
+    <div id="end-btns">
+      <button id="btn-again" class="big-btn">再玩一次 🔁</button>
+      <button id="btn-menu" class="big-btn alt">換一關 🗺️</button>
+    </div>
+  </section>
+
+  <img id="rocket-hedgehog" src="assets/deco_news_hedgehog.png" alt="">
+
+  <div id="start-overlay">
+    <div id="start-card">
+      <img src="assets/deco_hedgehog.png" alt="">
+      <div id="start-mode-label"></div>
+      <button id="btn-start" class="big-btn">🚀 出發！</button>
+    </div>
+  </div>
+
+  <div id="rotate-overlay">
+    <div class="phone-icon">📱</div>
+    <div>請把手機轉直來玩喔！</div>
+  </div>
+</div>
+
+<script src="js/zoomguard.js?v=1"></script>
+<script src="js/starmap.js?v=1"></script>
+<script src="vendor/lottie.min.js"></script>
+<script src="js/characters.js?v=5"></script>
+<script src="js/sounds.js?v=9"></script>
+<script src="js/engine.js?v=2"></script>
+<script src="js/perimeter.logic.js?v=1"></script>
+<script src="js/perimeter.main.js?v=1"></script>
+</body>
+</html>
